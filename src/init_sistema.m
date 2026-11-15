@@ -94,8 +94,53 @@ function estado = init_sistema(cfg)
         estado.hz = zeros(estado.Nx, estado.Ny, estado.Nz+1);
         
     elseif strcmp(cfg.modelo, '2D_2Bandas')
-        % (Aquí implementaremos la inicialización de TDGL2B.m más adelante)
-        % Se inicializaría G, G2, Gap, etc.
+        estado.Nx = round(cfg.a / cfg.dx);
+        estado.Ny = round(cfg.b / cfg.dy);
+        estado.NxNy = estado.Nx * estado.Ny;
+        
+        % Límite temporal de estabilidad y coeficientes numéricos
+        dl = 2 / (1/cfg.dx^2 + 1/cfg.dy^2);
+        estado.dt = 0.99 * min([dl/4, dl * cfg.bt / (4 * cfg.kappa^2)]);
+        
+        estado.rx = estado.dt / cfg.dx^2;
+        estado.ry = estado.dt / cfg.dy^2;
+        estado.c = estado.dt * (1 - cfg.T);
+        estado.txy = (cfg.kappa^2 * estado.dt * cfg.dx) / (cfg.bt * cfg.dy);
+        estado.tyx = (cfg.kappa^2 * estado.dt * cfg.dy) / (cfg.bt * cfg.dx);
+        estado.dxdy = cfg.dx * cfg.dy;
+        
+        % Condiciones iniciales del superconductor perfecto en 2 bandas
+        estado.G  = ones(estado.Nx+1, estado.Ny+1);
+        estado.G2 = ones(estado.Nx+1, estado.Ny+1);
+        estado.F  = ones(estado.Nx+1, estado.Ny+1);
+        estado.F3 = ones(estado.Nx+1, estado.Ny+1);
+        estado.E  = ones(estado.Nx+1, estado.Ny+1);
+        
+        % Potencial vector y variables de enlace (Eje X)
+        estado.thetax = zeros(estado.Nx, estado.Ny+1);
+        estado.phix   = zeros(estado.Nx, estado.Ny+1);
+        estado.Ux     = exp(-1i * estado.thetax);
+        estado.Qx     = zeros(estado.Nx, estado.Ny+1);
+        
+        % Potencial vector y variables de enlace (Eje Y)
+        estado.thetay = zeros(estado.Nx+1, estado.Ny);
+        estado.phiy   = zeros(estado.Nx+1, estado.Ny);
+        estado.Uy     = exp(-1i * estado.thetay);
+        estado.Qy     = zeros(estado.Nx+1, estado.Ny);
+        
+        estado.Vx = estado.Ux;        
+        estado.Vy = estado.Uy;
+        
+        % Fases iniciales (solo se calculan al inicio de cada escalón magnético)
+        estado.phase  = imag(log(estado.F));
+        estado.phase3 = imag(log(estado.F3));
+        
+        % Campo magnético local inicial B = rot(A)
+        estado.hz = zeros(estado.Nx, estado.Ny);
+        estado.hz(1:estado.Nx, 1:estado.Ny) = (estado.thetay(2:estado.Nx+1, 1:estado.Ny) ...
+                                             - estado.thetay(1:estado.Nx, 1:estado.Ny) ...
+                                             - estado.thetax(1:estado.Nx, 2:estado.Ny+1) ...
+                                             + estado.thetax(1:estado.Nx, 1:estado.Ny)) / estado.dxdy;
     end
     
     estado.iteraciones = 0; % Contador de pasos temporales
