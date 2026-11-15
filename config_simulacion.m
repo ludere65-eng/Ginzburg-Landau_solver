@@ -33,7 +33,7 @@ function cfg = config_simulacion()
 
     %% 4. BARRIDO DE CAMPO MAGNÉTICO EXTERNO
     cfg.Hi = 0.0;
-    cfg.Hf = 2.0;
+    cfg.Hf = 0.1; %2.0
     cfg.dH = 0.1;
 
     %% 5. CONTROL NUMÉRICO Y OPTIMIZACIÓN
