@@ -4,7 +4,7 @@ function cfg = config_simulacion()
 % activar variantes de condiciones de contorno y optimizaciones.
 
     %% 1. SELECCIÓN DE MODELO Y VARIANTES FÍSICAS
-    cfg.modelo = '2D_2Bandas';           % Opciones: '2D_2Bandas' | '3D_1Banda'
+    cfg.modelo = '3D_1Banda';           % Opciones: '2D_2Bandas' | '3D_1Banda'
     
     % Variantes exclusivas para 3D (rescatando el código comentado original)
     cfg.geometria_tau = 'bloque';       % Opciones: 'bloque' (activo) | 'estricto' (enlaces interiores)
@@ -16,8 +16,8 @@ function cfg = config_simulacion()
     cfg.dz = 0.25;                      % Solo usado en 3D
     
     % Caja externa (todo el dominio)
-    cfg.a = 10;                         % Usar 10 para replicar TDGL2B original 20 en 3D
-    cfg.b = 10;                         % Usar 10 para replicar TDGL2B original 20 en 3D
+    cfg.a = 20;                         % Usar 10 para replicar TDGL2B original 20 en 3D
+    cfg.b = 20;                         % Usar 10 para replicar TDGL2B original 20 en 3D
     cfg.c = 10;                         % Solo usado en 3D
     
     % Caja interna (muestra superconductora en 3D)
@@ -37,7 +37,7 @@ function cfg = config_simulacion()
     cfg.dH = 0.1;
 
     %% 5. CONTROL NUMÉRICO Y OPTIMIZACIÓN
-    cfg.eps = 1e-5;                     % Tolerancia de convergencia (1e-5 en 2D, 1e-7 en 3D)
+    cfg.eps = 1e-7;                     % Tolerancia de convergencia (1e-5 en 2D, 1e-7 en 3D)
     cfg.nMax = 10000000;                % Máximo total de iteraciones temporales
     cfg.lMax = 100;                     % Sub-iteraciones internas antes de verificar convergencia
     cfg.is_restart = false;             % false: iniciar desde cero | true: cargar restart/
