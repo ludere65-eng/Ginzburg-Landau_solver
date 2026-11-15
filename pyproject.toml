@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tdgl-solver"
+version = "0.1.0"
+description = "Simulador numérico TDGL (2D 2-Bandas y 3D) con motor Octave e interfaces gráficas en Python."
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Luder Espitia Guzmán"}
+]
+dependencies = [
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+    "matplotlib>=3.7.0",
+    "streamlit>=1.30.0"
+]
+
+[project.scripts]
+tdgl-tk = "tdgl_solver.gui_tk:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+tdgl_solver = ["octave_engine/*.m", "octave_engine/src/*.m"]
