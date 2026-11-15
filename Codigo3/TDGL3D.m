@@ -73,7 +73,7 @@ currentx=(1-T/dx);
 currenty=(1-T/dy);
 x = (0:dx:a); %% Malla para visualización 
 y = (0:dy:b);
-z = (0:dz:c); 
+z = (0:dz:c); %
 [X,Y] = meshgrid(x,y); % Grid 2D transversal
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%      
 
