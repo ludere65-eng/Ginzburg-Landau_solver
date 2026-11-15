@@ -148,6 +148,12 @@ function estado = solver_tdgl_3d(estado, H_actual, cfg)
         % Diferencia máxima en todo el dominio de hz (1:Nx, 1:Ny, 1:Nz+1)
         diffh = max(abs(hz(:) - fieldOld(:)));
         fieldOld = hz;
+        
+        if mod(m, 500) == 0
+            fprintf('   [H = %.2f | Iter: %d] diff_psi = %.2e, diff_hz = %.2e\n', ...
+                    H_actual, m * lMax, diff, diffh);
+            fflush(stdout); % Fuerza a Octave a mostrar el texto inmediatamente en la terminal
+        end
 
         if (diff < cfg.eps) && (diffh < cfg.eps)
             break;
