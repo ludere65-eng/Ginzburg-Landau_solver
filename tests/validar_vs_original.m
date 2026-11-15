@@ -4,7 +4,7 @@
 clear; clc;
 
 %% 1. CONFIGURACIÓN DE LA VALIDACIÓN
-modo = '3D_1Banda'; % Opciones: '3D_1Banda' | '2D_2Bandas'
+modo = '2D_2Bandas'; % Opciones: '3D_1Banda' | '2D_2Bandas'
 
 % Define los valores de campo H que quieres comparar (deben existir en ambas carpetas)
 H_lista = {'0.1'};  % Ej. {'0.1', '0.2', '0.5'}
