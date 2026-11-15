@@ -1,8 +1,9 @@
 function estado = solver_tdgl_3d(estado, H_actual, cfg)
-% SOLVER_TDGL_3D Evoluciona las ecuaciones TDGL en 3D hasta el estado estacionario
-% para un valor dado de campo magnético externo (H_actual).
+% SOLVER_TDGL_3D Evoluciona las ecuaciones TDGL en 3D hasta el estado estacionario.
+% Versión optimizada: saca fronteras estáticas del bucle interno y evita
+% evaluaciones redundantes en el vacío.
 
-    % 1. Desempaquetar dimensiones y constantes (evita overhead en el bucle)
+    % 1. Desempaquetar dimensiones y constantes
     Nx = estado.Nx; Ny = estado.Ny; Nz = estado.Nz;
     x1 = estado.x1; x2 = estado.x2;
     y1 = estado.y1; y2 = estado.y2;
@@ -14,9 +15,9 @@ function estado = solver_tdgl_3d(estado, H_actual, cfg)
     syx = estado.syx; syz = estado.syz;
     szx = estado.szx; szy = estado.szy;
 
-    dxdy = cfg.dx * cfg.dy;
-    dydz = cfg.dy * cfg.dz;
-    dzdx = cfg.dz * cfg.dx;
+    inv_dxdy = 1.0 / (cfg.dx * cfg.dy);
+    inv_dydz = 1.0 / (cfg.dy * cfg.dz);
+    inv_dzdx = 1.0 / (cfg.dz * cfg.dx);
 
     % 2. Desempaquetar matrices físicas
     G = estado.G; F = estado.F;
@@ -28,7 +29,6 @@ function estado = solver_tdgl_3d(estado, H_actual, cfg)
     Qx = estado.Qx; Qy = estado.Qy; Qz = estado.Qz;
     hx = estado.hx; hy = estado.hy; hz = estado.hz;
 
-    % Inicializar memoria de convergencia si es el primer paso de campo H
     if ~isfield(estado, 'Cooper0')
         Cooper0 = abs(G);
         fieldOld = hz;
@@ -37,26 +37,49 @@ function estado = solver_tdgl_3d(estado, H_actual, cfg)
         fieldOld = estado.fieldOld;
     end
 
+    % 3. OPTIMIZACIÓN: Fijar condiciones de frontera estáticas UNA SOLA VEZ
+    % (Ninguna ecuación interna toca estos bordes)
+    hx(1, 1:Ny, 1:Nz)    = 0.0;
+    hx(Nx+1, 1:Ny, 1:Nz) = 0.0;
+    hx(2:Nx, 1, 1:Nz)    = 0.0;
+    hx(2:Nx, Ny, 1:Nz)   = 0.0;
+    hx(2:Nx, 2:Ny-1, 1)  = 0.0;
+    hx(2:Nx, 2:Ny-1, Nz) = 0.0;
+
+    hy(1:Nx, 1, 1:Nz)    = 0.0;
+    hy(1:Nx, Ny+1, 1:Nz) = 0.0;
+    hy(1:Nx, 2:Ny, 1)    = 0.0;
+    hy(1:Nx, 2:Ny, Nz)   = 0.0;
+    hy(1, 2:Ny, 2:Nz-1)  = 0.0;
+    hy(Nx, 2:Ny, 2:Nz-1) = 0.0;
+
+    hz(1:Nx, 1:Ny, 1)    = H_actual;
+    hz(1:Nx, 1:Ny, Nz)   = H_actual;
+    hz(1, 1:Ny, 1:Nz)    = H_actual;
+    hz(Nx, 1:Ny, 1:Nz)   = H_actual;
+    hz(2:Nx-1, 1, 1:Nz)  = H_actual;
+    hz(2:Nx-1, Ny, 1:Nz) = H_actual;
+
     lMax = cfg.lMax;
     mMax = cfg.nMax / lMax;
     m = 1;
 
-    % Pre-definir rangos de índices de la caja interna para legibilidad y rapidez
+    % Rangos de índices pre-calculados
     ix = x1+1:x2;
     iy = y1+1:y2;
     iz = z1+1:z2;
 
-    % 3. Bucle de relajación hacia el estado estacionario
+    % 4. Bucle principal de relajación
     while m <= mMax
         l = 1;
         while l <= lMax
-            % --- A. Evolución del Parámetro de Orden (TDGL 3D) ---
+            % --- A. Evolución del Parámetro de Orden ---
             G_in = G(ix, iy, iz);
             F(ix, iy, iz) = G_in ...
                 + rx .* (Vx(ix, iy, iz) .* G(ix+1, iy, iz) - 2.0 .* G_in + conj(Vx(ix-1, iy, iz)) .* G(ix-1, iy, iz)) ...
                 + ry .* (Vy(ix, iy, iz) .* G(ix, iy+1, iz) - 2.0 .* G_in + conj(Vy(ix, iy-1, iz)) .* G(ix, iy-1, iz)) ...
                 + rz .* (Vz(ix, iy, iz) .* G(ix, iy, iz+1) - 2.0 .* G_in + conj(Vz(ix, iy, iz-1)) .* G(ix, iy, iz-1)) ...
-                + c1 .* G_in .* (1.0 - abs(G_in).^2);
+                + c1 .* G_in .* (1.0 - (real(G_in).^2 + imag(G_in).^2));
 
             % --- B. Supercorriente y Potencial Vector en X ---
             Qx(1:Nx, 2:Ny, 2:Nz) = imag(conj(G(1:Nx, 2:Ny, 2:Nz)) .* Vx(1:Nx, 2:Ny, 2:Nz) .* G(2:Nx+1, 2:Ny, 2:Nz));
@@ -84,13 +107,13 @@ function estado = solver_tdgl_3d(estado, H_actual, cfg)
 
             % --- E. Campo Magnético Local B = rot(A) ---
             hx(2:Nx, 2:Ny-1, 2:Nz-1) = (phiz(2:Nx, 3:Ny, 2:Nz-1) - phiz(2:Nx, 2:Ny-1, 2:Nz-1) ...
-                                      - phiy(2:Nx, 2:Ny-1, 3:Nz) + phiy(2:Nx, 2:Ny-1, 2:Nz-1)) / dydz;
+                                      - phiy(2:Nx, 2:Ny-1, 3:Nz) + phiy(2:Nx, 2:Ny-1, 2:Nz-1)) .* inv_dydz;
 
             hy(2:Nx-1, 2:Ny, 2:Nz-1) = (phix(2:Nx-1, 2:Ny, 3:Nz) - phix(2:Nx-1, 2:Ny, 2:Nz-1) ...
-                                      - phiz(3:Nx, 2:Ny, 2:Nz-1) + phiz(2:Nx-1, 2:Ny, 2:Nz-1)) / dzdx;
+                                      - phiz(3:Nx, 2:Ny, 2:Nz-1) + phiz(2:Nx-1, 2:Ny, 2:Nz-1)) .* inv_dzdx;
 
             hz(2:Nx-1, 2:Ny-1, 2:Nz) = (phiy(3:Nx, 2:Ny-1, 2:Nz) - phiy(2:Nx-1, 2:Ny-1, 2:Nz) ...
-                                      - phix(2:Nx-1, 3:Ny, 2:Nz) + phix(2:Nx-1, 2:Ny-1, 2:Nz)) / dxdy;
+                                      - phix(2:Nx-1, 3:Ny, 2:Nz) + phix(2:Nx-1, 2:Ny-1, 2:Nz)) .* inv_dxdy;
 
             % --- F. Condiciones de Contorno (Caras de la Caja Interna) ---
             F(x1, iy, iz)   = Ux(x1, iy, iz) .* F(x1+1, iy, iz);
@@ -102,29 +125,7 @@ function estado = solver_tdgl_3d(estado, H_actual, cfg)
             F(ix, iy, z1)   = Uz(ix, iy, z1) .* F(ix, iy, z1+1);
             F(ix, iy, z2+1) = conj(Uz(ix, iy, z2)) .* F(ix, iy, z2);
 
-            % --- G. Condiciones de Contorno del Campo Magnético Externo ---
-            hx(1, 1:Ny, 1:Nz)    = 0.0;
-            hx(Nx+1, 1:Ny, 1:Nz) = 0.0;
-            hx(2:Nx, 1, 1:Nz)    = 0.0;
-            hx(2:Nx, Ny, 1:Nz)   = 0.0;
-            hx(2:Nx, 2:Ny-1, 1)  = 0.0;
-            hx(2:Nx, 2:Ny-1, Nz) = 0.0;
-
-            hy(1:Nx, 1, 1:Nz)    = 0.0;
-            hy(1:Nx, Ny+1, 1:Nz) = 0.0;
-            hy(1:Nx, 2:Ny, 1)    = 0.0;
-            hy(1:Nx, 2:Ny, Nz)   = 0.0;
-            hy(1, 2:Ny, 2:Nz-1)  = 0.0;
-            hy(Nx, 2:Ny, 2:Nz-1) = 0.0;
-
-            hz(1:Nx, 1:Ny, 1)    = H_actual;
-            hz(1:Nx, 1:Ny, Nz)   = H_actual;
-            hz(1, 1:Ny, 1:Nz)    = H_actual;
-            hz(Nx, 1:Ny, 1:Nz)   = H_actual;
-            hz(2:Nx-1, 1, 1:Nz)  = H_actual;
-            hz(2:Nx-1, Ny, 1:Nz) = H_actual;
-
-            % --- H. Actualización de variables para el siguiente paso ---
+            % --- G. Actualización de variables para el siguiente paso ---
             G(x1:x2+1, y1:y2+1, z1:z2+1) = F(x1:x2+1, y1:y2+1, z1:z2+1);
             thetax = phix; Vx = Ux;
             thetay = phiy; Vy = Uy;
@@ -133,26 +134,23 @@ function estado = solver_tdgl_3d(estado, H_actual, cfg)
             l = l + 1;
         end
 
-        % --- I. Suavizado de Bordes (8 vértices, 12 aristas o ambos) ---
+        % --- H. Suavizado de Bordes ---
         F = aplicar_suavizado_3d(F, estado, cfg);
 
-        % --- J. Criterio de Convergencia VECTORIZADO ---
+        % --- I. Criterio de Convergencia Vectorizado ---
         Cooper1 = abs(F);
-        
-        % Extraemos únicamente la sub-malla de la caja interna (x1:x2+1, y1:y2+1, z1:z2+1)
         sub_C1 = Cooper1(x1:x2+1, y1:y2+1, z1:z2+1);
         sub_C0 = Cooper0(x1:x2+1, y1:y2+1, z1:z2+1);
         diff = max(abs(sub_C1(:) - sub_C0(:)));
         Cooper0(x1:x2+1, y1:y2+1, z1:z2+1) = sub_C1;
 
-        % Diferencia máxima en todo el dominio de hz (1:Nx, 1:Ny, 1:Nz+1)
         diffh = max(abs(hz(:) - fieldOld(:)));
         fieldOld = hz;
-        
+
         if mod(m, 500) == 0
             fprintf('   [H = %.2f | Iter: %d] diff_psi = %.2e, diff_hz = %.2e\n', ...
                     H_actual, m * lMax, diff, diffh);
-            fflush(stdout); % Fuerza a Octave a mostrar el texto inmediatamente en la terminal
+            fflush(stdout);
         end
 
         if (diff < cfg.eps) && (diffh < cfg.eps)
@@ -162,7 +160,7 @@ function estado = solver_tdgl_3d(estado, H_actual, cfg)
         m = m + 1;
     end
 
-    % 4. Empaquetar de vuelta en la estructura estado
+    % 5. Empaquetar de vuelta en la estructura estado
     estado.G = G; estado.F = F;
     estado.thetax = thetax; estado.thetay = thetay; estado.thetaz = thetaz;
     estado.phix = phix; estado.phiy = phiy; estado.phiz = phiz;
