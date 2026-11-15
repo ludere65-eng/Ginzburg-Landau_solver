@@ -4,7 +4,7 @@ function cfg = config_simulacion()
 % activar variantes de condiciones de contorno y optimizaciones.
 
     %% 1. SELECCIÓN DE MODELO Y VARIANTES FÍSICAS
-    cfg.modelo = '3D_1Banda';           % Opciones: '2D_2Bandas' | '3D_1Banda'
+    cfg.modelo = '2D_2Bandas';           % Opciones: '2D_2Bandas' | '3D_1Banda'
     
     % Variantes exclusivas para 3D (rescatando el código comentado original)
     cfg.geometria_tau = 'bloque';       % Opciones: 'bloque' (activo) | 'estricto' (enlaces interiores)
