@@ -11,31 +11,47 @@ from scipy.io import loadmat
 
 def _leer_octave_texto(ruta: Path) -> np.ndarray:
     """Parsea un archivo guardado en formato texto ASCII por defecto de GNU Octave."""
-    dims = None
     valores = []
-
+    shape = []
+    data_start_idx = 0
+    
     with open(ruta, "r", encoding="utf-8", errors="ignore") as f:
-        for linea in f:
-            s = linea.strip()
-            if not s or s.startswith("# name:") or s.startswith("# type:") or s.startswith("# Created"):
-                continue
-            if s.startswith("# ndims:"):
-                continue
-            if dims is None and all(part.isdigit() for part in s.split()):
-                dims = tuple(int(part) for part in s.split())
-                continue
-            # Soportar complejos de Octave tipo (real,imag) o números reales
-            for token in s.split():
-                if token.startswith("(") and token.endswith(")"):
-                    re_str, im_str = token[1:-1].split(",")
-                    valores.append(complex(float(re_str), float(im_str)))
-                else:
-                    valores.append(float(token))
-
+        lineas = f.readlines()
+        
+    # 1. Encontrar dónde empiezan los datos y extraer las dimensiones
+    for i, linea in enumerate(lineas):
+        s = linea.strip()
+        if s.startswith("# ndims:"):
+            # En matrices 3D, Octave pone las dimensiones en la siguiente línea
+            dims_line = lineas[i+1].strip()
+            shape = [int(x) for x in dims_line.split()]
+            data_start_idx = i + 2
+            break
+        elif s.startswith("# rows:"):
+            shape.append(int(s.split(":")[1]))
+        elif s.startswith("# columns:"):
+            shape.append(int(s.split(":")[1]))
+            data_start_idx = i + 1
+            break
+            
+    # 2. Leer únicamente los valores numéricos
+    for linea in lineas[data_start_idx:]:
+        s = linea.strip()
+        if not s or s.startswith("#"):
+            continue
+        for token in s.split():
+            if token.startswith("(") and token.endswith(")"):
+                # Formato de números complejos en Octave: (real,imag)
+                re_str, im_str = token[1:-1].split(",")
+                valores.append(complex(float(re_str), float(im_str)))
+            else:
+                # Números reales
+                valores.append(float(token))
+                
     arr = np.array(valores)
-    if dims is not None:
-        # Octave guarda en orden columna-mayor (Fortran order)
-        arr = arr.reshape(dims, order="F")
+    if shape:
+        # Octave guarda en orden Fortran (columna-mayor)
+        arr = arr.reshape(shape, order="F")
     return arr
 
 

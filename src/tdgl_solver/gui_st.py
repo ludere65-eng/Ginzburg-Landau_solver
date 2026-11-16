@@ -42,7 +42,7 @@ try:
                 matriz = datos[var_plot] 
                 
                 # Manejo automático de matrices 2D y 3D
-                if matriz.ndim == 3: ### asdfasdfasdf 
+                if matriz.ndim == 3: 
                     z_slice = st.slider(
                         "Corte transversal (Z):", 
                         0, matriz.shape[2] - 1, 
