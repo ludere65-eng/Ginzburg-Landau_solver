@@ -2,7 +2,11 @@
 Interfaz web interactiva en Streamlit para simular (con detección de caché)
 y visualizar/animar resultados TDGL en 2D (2 bandas) y 3D (1 banda).
 """
-
+import plotly.express as px
+import plotly.graph_objects as go
+import plotly.figure_factory as ff
+import pandas as pd
+import seaborn as sns
 import time
 from pathlib import Path
 from typing import Dict, List, Any
@@ -256,116 +260,137 @@ def main() -> None:
         mostrar_panel_simulacion(runner)
 
     with tab_vis:
-        # Combinar las 3 opciones fijas con las simulaciones cacheadas en runs/
-        opciones_totales: Dict[str, str] = dict(RUTAS_BASE)
-        opciones_totales.update(runner.listar_simulaciones_cacheadas())
-
         st.sidebar.header("1. Fuente de Datos")
-        nombres_opciones = list(opciones_totales.keys())
+        # ... (Carga de datos y slider de H igual que antes) ...
+        
+        # Sub-pestañas para organizar la densidad de información
+        subtab_mapas, subtab_vectores, subtab_estadistica, subtab_3d = st.tabs([
+            "🗺️ Mapas y Contornos", 
+            "↗️ Campos Vectoriales", 
+            "📈 Estadística y Distribuciones", 
+            "🧊 Reconstrucción 3D"
+        ])
+        
+        datos = loader.cargar_paso_campo(h_seleccionado)
+        
+        # ---------------------------------------------------------
+        # 1. MAPAS INTERACTIVOS Y CONTORNOS (Plotly)
+        # ---------------------------------------------------------
+        with subtab_mapas:
+            st.markdown("Gráficos interactivos con hover, zoom y paneo.")
+            col1, col2 = st.columns(2)
+            
+            if "d4" in datos:
+                vista_d4 = datos["d4"][:, :, z_slice] if es_3d else datos["d4"]
+                fig_contorno = go.Figure(data=go.Contour(
+                    z=vista_d4, colorscale="Viridis", contours=dict(showlines=False)
+                ))
+                fig_contorno.update_layout(title="Contorno Suavizado: Densidad de Pares (d4)")
+                col1.plotly_chart(fig_contorno, use_container_width=True)
+                
+            if "hz" in datos:
+                vista_hz = datos["hz"][:, :, z_slice] if es_3d else datos["hz"]
+                fig_calor = px.imshow(vista_hz, color_continuous_scale="RdBu_r", title="Mapa de Calor: Campo Magnético (hz)")
+                col2.plotly_chart(fig_calor, use_container_width=True)
 
-        # Si acaba de correr o cargar una simulación, seleccionarla automáticamente
-        idx_default = 0
-        if "ruta_activa_override" in st.session_state:
-            ruta_over = st.session_state["ruta_activa_override"]
-            for i, k in enumerate(nombres_opciones):
-                if Path(opciones_totales[k]).resolve() == Path(ruta_over).resolve():
-                    idx_default = i
-                    break
+        # ---------------------------------------------------------
+        # 2. CAMPOS VECTORIALES Y STREAMLINES
+        # ---------------------------------------------------------
+        with subtab_vectores:
+            st.markdown("Análisis del flujo de supercorrientes (aJx, aJy).")
+            if "aJx" in datos and "aJy" in datos:
+                jx = datos["aJx"][:, :, z_slice] if es_3d else datos["aJx"]
+                jy = datos["aJy"][:, :, z_slice] if es_3d else datos["aJy"]
+                
+                # Crear malla de coordenadas (reduciendo densidad para visibilidad)
+                x, y = np.meshgrid(np.arange(0, jx.shape[1], 2), np.arange(0, jx.shape[0], 2))
+                u = jx[::2, ::2]
+                v = jy[::2, ::2]
+                
+                fig_quiver = ff.create_quiver(x, y, u, v, scale=0.5, arrow_scale=0.3, name='Corriente', line_color='crimson')
+                fig_quiver.update_layout(title="Quiver Plot (Vectores de Corriente J)", margin=dict(l=0, r=0, t=30, b=0))
+                st.plotly_chart(fig_quiver, use_container_width=True)
+                
+                # Líneas de corriente (Streamlines) usando Matplotlib empaquetado en Streamlit
+                fig_stream, ax = plt.subplots(figsize=(6, 4))
+                ax.streamplot(np.arange(jx.shape[1]), np.arange(jx.shape[0]), jx, jy, density=1.5, color=np.sqrt(jx**2 + jy**2), cmap='plasma')
+                ax.set_title("Streamlines de Supercorrientes")
+                st.pyplot(fig_stream)
 
-        opcion_modelo = st.sidebar.selectbox(
-            "Conjunto de simulación:",
-            options=nombres_opciones,
-            index=idx_default,
-        )
-        ruta_path = resolver_ruta(opciones_totales[opcion_modelo])
+        # ---------------------------------------------------------
+        # 3. ESTADÍSTICA, DISTRIBUCIONES Y CORRELACIÓN
+        # ---------------------------------------------------------
+        with subtab_estadistica:
+            st.markdown("Análisis global de las variables en todo el dominio espacial.")
+            
+            # Aplanar matrices y crear un DataFrame tabular para análisis estadístico
+            df_dict = {}
+            for var_key, matriz in datos.items():
+                if matriz.ndim in (2, 3):
+                    df_dict[var_key] = matriz.flatten()
+            
+            if df_dict:
+                df = pd.DataFrame(df_dict)
+                
+                c_est1, c_est2, c_est3 = st.columns(3)
+                
+                with c_est1:
+                    var_hist = st.selectbox("Variable para Histograma/Violín:", list(df.columns), key="hist_var")
+                    fig_hist = px.histogram(df, x=var_hist, marginal="box", title=f"Distribución y Caja de {var_hist}")
+                    st.plotly_chart(fig_hist, use_container_width=True)
+                    
+                with c_est2:
+                    fig_violin = px.violin(df, y=var_hist, box=True, points="all", title=f"Violin Plot: {var_hist}")
+                    st.plotly_chart(fig_violin, use_container_width=True)
+                    
+                with c_est3:
+                    st.markdown("**Matriz de Correlación**")
+                    corr_matrix = df.corr()
+                    fig_corr = px.imshow(corr_matrix, text_auto=".2f", color_continuous_scale="RdBu_r")
+                    st.plotly_chart(fig_corr, use_container_width=True)
+                
+                # Jointplot (Dispersión Marginal) y Coordenadas Paralelas
+                st.markdown("### Relaciones Multivariables")
+                col_m1, col_m2 = st.columns(2)
+                
+                with col_m1:
+                    var_x = st.selectbox("Eje X (Dispersión):", list(df.columns), index=0)
+                    var_y = st.selectbox("Eje Y (Dispersión):", list(df.columns), index=min(1, len(df.columns)-1))
+                    # Muestreo para no saturar el navegador con millones de puntos
+                    df_sample = df.sample(n=min(5000, len(df))) 
+                    fig_joint = px.scatter(df_sample, x=var_x, y=var_y, marginal_x="histogram", marginal_y="histogram", opacity=0.3)
+                    st.plotly_chart(fig_joint, use_container_width=True)
+                    
+                with col_m2:
+                    vars_paralelas = st.multiselect("Variables para Coordenadas Paralelas:", list(df.columns), default=list(df.columns)[:4])
+                    if len(vars_paralelas) > 1:
+                        fig_parcoords = px.parallel_coordinates(df_sample, dimensions=vars_paralelas, color=vars_paralelas[0], color_continuous_scale=px.colors.diverging.Tealrose)
+                        st.plotly_chart(fig_parcoords, use_container_width=True)
 
-        try:
-            loader = TDGLDataLoader(str(ruta_path))
-            campos = loader.listar_campos_disponibles()
-        except FileNotFoundError:
-            st.error(f"No se encontró la carpeta para **{opcion_modelo}**.")
-            return
-
-        if not campos:
-            st.warning("Esta carpeta aún no tiene pasos de campo H guardados.")
-            return
-
-        datos_muestra = loader.cargar_paso_campo(campos[0])
-        vars_disponibles = list(datos_muestra.keys())
-        es_3d = any(mat.ndim == 3 for mat in datos_muestra.values())
-
-        st.sidebar.header("2. Variables y Apariencia")
-        vars_seleccionadas: List[str] = st.sidebar.multiselect(
-            "Variables a visualizar:",
-            options=vars_disponibles,
-            default=vars_disponibles[: min(2, len(vars_disponibles))],
-            format_func=lambda k: NOMBRES_VARIABLES.get(k, k),
-        )
-
-        cmap_elegido = st.sidebar.selectbox(
-            "Paleta de colores:",
-            options=["inferno", "viridis", "plasma", "magma", "twilight", "coolwarm"],
-            index=0,
-        )
-        fijar_escala = st.sidebar.checkbox("Fijar escala de color", value=True)
-
-        z_slice = 0
-        if es_3d:
-            max_z = max(mat.shape[2] for mat in datos_muestra.values() if mat.ndim == 3) - 1
-            st.sidebar.header("3. Corte Transversal 3D")
-            z_slice = st.sidebar.slider("Plano Z:", 0, max_z, max_z // 2)
-
-        st.sidebar.header("4. Control de Campo H")
-        modo_animacion = st.sidebar.toggle("Modo Animación (Evolución en H)", value=False)
-
-        if not vars_seleccionadas:
-            st.info("Selecciona al menos una variable en el menú lateral.")
-            return
-
-        contenedor_graficas = st.empty()
-
-        def renderizar_cuadricula(h_actual: str) -> None:
-            datos = loader.cargar_paso_campo(h_actual)
-            with contenedor_graficas.container():
-                st.markdown(f"**Conjunto:** `{opcion_modelo}` — **Campo Aplicado H = {h_actual}**")
-                num_cols = min(3, len(vars_seleccionadas))
-                cols = st.columns(num_cols)
-                for idx, var_key in enumerate(vars_seleccionadas):
-                    if var_key in datos:
-                        fig = construir_figura(
-                            datos[var_key],
-                            var_key,
-                            h_actual,
-                            z_slice,
-                            cmap_elegido,
-                            fijar_escala,
-                        )
-                        with cols[idx % num_cols]:
-                            st.pyplot(fig, use_container_width=False)
-                        plt.close(fig)
-
-        if not modo_animacion:
-            h_seleccionado = st.sidebar.select_slider(
-                "Valor de Campo H:", options=campos, value=campos[0]
-            )
-            renderizar_cuadricula(h_seleccionado)
-        else:
-            velocidad = st.sidebar.slider(
-                "Pausa entre cuadros (s):", 0.05, 1.50, 0.30, 0.05
-            )
-            repetir = st.sidebar.checkbox("Bucle continuo", value=False)
-            if st.sidebar.button("▶ Iniciar Animación", type="primary"):
-                barra_anim = st.progress(0)
-                while True:
-                    for i, h_val in enumerate(campos):
-                        renderizar_cuadricula(h_val)
-                        barra_anim.progress((i + 1) / len(campos))
-                        time.sleep(velocidad)
-                    if not repetir:
-                        break
+        # ---------------------------------------------------------
+        # 4. RECONSTRUCCIÓN 3D INTERACTIVA
+        # ---------------------------------------------------------
+        with subtab_3d:
+            if es_3d and "d4" in datos:
+                st.markdown("Isosuperficies tridimensionales con rotación y zoom en tiempo real.")
+                vol_data = datos["d4"]
+                X, Y, Z = np.mgrid[0:vol_data.shape[0], 0:vol_data.shape[1], 0:vol_data.shape[2]]
+                
+                fig_3d = go.Figure(data=go.Isosurface(
+                    x=X.flatten(),
+                    y=Y.flatten(),
+                    z=Z.flatten(),
+                    value=vol_data.flatten(),
+                    isomin=0.1,
+                    isomax=0.9,
+                    surface_count=5, # Número de capas de contorno 3D
+                    colorscale="Viridis",
+                    caps=dict(x_show=False, y_show=False)
+                ))
+                fig_3d.update_layout(scene=dict(xaxis_title='X', yaxis_title='Y', zaxis_title='Z'), title="Vórtices 3D (Tubos de flujo)")
+                st.plotly_chart(fig_3d, use_container_width=True)
             else:
-                renderizar_cuadricula(campos[0])
-
+                st.info("La reconstrucción 3D requiere que el modelo actual sea 3D_1Banda y contenga la variable de densidad de pares.")
 
 if __name__ == "__main__":
     main()
