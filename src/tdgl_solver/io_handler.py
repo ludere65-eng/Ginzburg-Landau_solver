@@ -1,5 +1,6 @@
 """
-Módulo de entrada/salida (I/O) para cargar matrices .mat generadas por el motor TDGL.
+Módulo de entrada/salida (I/O) para cargar matrices .mat generadas por el motor TDGL
+(compatible con formato binario MATLAB y formato texto ASCII de GNU Octave).
 """
 
 from pathlib import Path
@@ -8,33 +9,61 @@ import numpy as np
 from scipy.io import loadmat
 
 
-class TDGLDataLoader:
-    """Cargador estructurado de resultados físicos en formato `.mat`.
+def _leer_octave_texto(ruta: Path) -> np.ndarray:
+    """Parsea un archivo guardado en formato texto ASCII por defecto de GNU Octave."""
+    valores = []
+    shape = []
+    data_start_idx = 0
+    
+    with open(ruta, "r", encoding="utf-8", errors="ignore") as f:
+        lineas = f.readlines()
+        
+    # 1. Encontrar dónde empiezan los datos y extraer las dimensiones
+    for i, linea in enumerate(lineas):
+        s = linea.strip()
+        if s.startswith("# ndims:"):
+            # En matrices 3D, Octave pone las dimensiones en la siguiente línea
+            dims_line = lineas[i+1].strip()
+            shape = [int(x) for x in dims_line.split()]
+            data_start_idx = i + 2
+            break
+        elif s.startswith("# rows:"):
+            shape.append(int(s.split(":")[1]))
+        elif s.startswith("# columns:"):
+            shape.append(int(s.split(":")[1]))
+            data_start_idx = i + 1
+            break
+            
+    # 2. Leer únicamente los valores numéricos
+    for linea in lineas[data_start_idx:]:
+        s = linea.strip()
+        if not s or s.startswith("#"):
+            continue
+        for token in s.split():
+            if token.startswith("(") and token.endswith(")"):
+                # Formato de números complejos en Octave: (real,imag)
+                re_str, im_str = token[1:-1].split(",")
+                valores.append(complex(float(re_str), float(im_str)))
+            else:
+                # Números reales
+                valores.append(float(token))
+                
+    arr = np.array(valores)
+    if shape:
+        # Octave guarda en orden Fortran (columna-mayor)
+        arr = arr.reshape(shape, order="F")
+    return arr
 
-    Attributes:
-        output_dir (Path): Ruta raíz donde se encuentran las subcarpetas
-            `psi/`, `field/`, `phase/`, `currentsx/`, etc.
-    """
+
+class TDGLDataLoader:
+    """Cargador estructurado de resultados físicos en formato `.mat` o Octave ASCII."""
 
     def __init__(self, output_dir: str) -> None:
-        """Inicializa el cargador verificando que exista el directorio de salida.
-
-        Args:
-            output_dir (str): Ruta al directorio de resultados (ej. `'output_modular'`).
-
-        Raises:
-            FileNotFoundError: Si la ruta especificada no existe.
-        """
         self.output_dir = Path(output_dir).resolve()
         if not self.output_dir.exists():
             raise FileNotFoundError(f"No se encontró el directorio: {self.output_dir}")
 
     def listar_campos_disponibles(self) -> List[str]:
-        """Lista los valores de campo magnético H disponibles ordenados numéricamente.
-
-        Returns:
-            List[str]: Nombres de las subcarpetas de campo H (ej. `['0', '0.1', '0.2']`).
-        """
         psi_dir = self.output_dir / "psi"
         if not psi_dir.exists():
             return []
@@ -42,16 +71,6 @@ class TDGLDataLoader:
         return sorted(carpetas, key=lambda x: float(x))
 
     def cargar_paso_campo(self, h_str: str) -> Dict[str, np.ndarray]:
-        """Carga todas las matrices físicas disponibles para un valor de campo H.
-
-        Args:
-            h_str (str): Identificador del campo magnético (ej. `'0.1'`).
-
-        Returns:
-            Dict[str, np.ndarray]: Diccionario cuyas claves son los nombres de las
-                variables (`'d'`, `'d4'`, `'B'`, `'hz'`, `'phase'`, `'aJx'`, `'aJy'`)
-                y sus valores son los arreglos de NumPy correspondientes.
-        """
         mapa_archivos = {
             "d": ("psi", "d.mat"),
             "d4": ("psi", "d4.mat"),
@@ -67,8 +86,12 @@ class TDGLDataLoader:
         for var_name, (subcarpeta, filename) in mapa_archivos.items():
             ruta = self.output_dir / subcarpeta / h_str / filename
             if ruta.exists():
-                mat = loadmat(str(ruta))
-                if var_name in mat:
-                    datos[var_name] = np.asarray(mat[var_name])
+                try:
+                    mat = loadmat(str(ruta))
+                    if var_name in mat:
+                        datos[var_name] = np.asarray(mat[var_name])
+                except ValueError:
+                    # Fallback automático para formato ASCII por defecto de GNU Octave
+                    datos[var_name] = _leer_octave_texto(ruta)
 
         return datos

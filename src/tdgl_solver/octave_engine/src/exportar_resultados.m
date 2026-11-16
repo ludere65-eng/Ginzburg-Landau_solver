@@ -24,22 +24,22 @@ function exportar_resultados(estado, obs, H_actual, cfg)
     d = obs.d;
     hz = estado.hz;
     phase = obs.phase;
-    save(fullfile(base, 'psi', dir_H, 'd.mat'), 'd');
-    save(fullfile(base, 'field', dir_H, 'hz.mat'), 'hz');
-    save(fullfile(base, 'phase', dir_H, 'phase.mat'), 'phase');
+    save(fullfile(base, 'psi', dir_H, 'd.mat'), 'd', '-v7');
+    save(fullfile(base, 'field', dir_H, 'hz.mat'), 'hz', '-v7');
+    save(fullfile(base, 'phase', dir_H, 'phase.mat'), 'phase', '-v7');
 
     % Variables específicas de cada dimensión
     if strcmp(cfg.modelo, '3D_1Banda')
         d4 = obs.d4;
         aJx = obs.aJx;
         aJy = obs.aJy;
-        save(fullfile(base, 'psi', dir_H, 'd4.mat'), 'd4');
-        save(fullfile(base, 'currentsx', dir_H, 'aJx.mat'), 'aJx');
-        save(fullfile(base, 'currentsy', dir_H, 'aJy.mat'), 'aJy');
+        save(fullfile(base, 'psi', dir_H, 'd4.mat'), 'd4', '-v7');
+        save(fullfile(base, 'currentsx', dir_H, 'aJx.mat'), 'aJx', '-v7');
+        save(fullfile(base, 'currentsy', dir_H, 'aJy.mat'), 'aJy', '-v7');
     elseif strcmp(cfg.modelo, '2D_2Bandas')
         B = obs.B;
         d2 = obs.d2;
-        save(fullfile(base, 'psi', dir_H, 'B.mat'), 'B');
-        save(fullfile(base, 'psi', dir_H, 'd2.mat'), 'd2');
+        save(fullfile(base, 'psi', dir_H, 'B.mat'), 'B', '-v7');
+        save(fullfile(base, 'psi', dir_H, 'd2.mat'), 'd2', '-v7');
     end
 end
