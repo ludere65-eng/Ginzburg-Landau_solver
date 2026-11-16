@@ -64,7 +64,3 @@ Desktop.ini
 $RECYCLE.BIN/
 .Trash-*
 
-
-#------- Archivos de salida ---
-**/output/
-**/restart/
