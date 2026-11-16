@@ -1,16 +1,13 @@
 % VALIDAR_VS_ORIGINAL.M
-% Compara los resultados de la versión modularizada (output_modular/)
-% contra las líneas base originales (Codigo2/output o Codigo3/output).
+% Compara los resultados de la versión modularizada (en runs/)
+% contra las líneas base originales (Codigo2/output).
 clear; clc;
 
 %% 1. CONFIGURACIÓN DE LA VALIDACIÓN
 modo = '2D_2Bandas'; % Opciones: '3D_1Banda' | '2D_2Bandas'
 
-% Define los valores de campo H que quieres comparar (deben existir en ambas carpetas)
-H_lista = {'0.1'};  % Ej. {'0.1', '0.2', '0.5'}
-
-%% 2. DEFINICIÓN DE RUTAS Y VARIABLES SEGÚN EL MODO
-ruta_mod = fullfile('..', 'output_modular');
+% ¡IMPORTANTE! Reemplaza 'TU_HASH' con la carpeta exacta que generó tu simulación
+ruta_mod = fullfile('..', 'runs', '2D_2Bandas_TU_HASH'); 
 
 if strcmp(modo, '3D_1Banda')
     ruta_orig = fullfile('..', 'Codigo3', 'output');
@@ -35,9 +32,27 @@ else
     error('Modo no válido. Usa ''3D_1Banda'' o ''2D_2Bandas''.');
 end
 
+%% 2. BÚSQUEDA AUTOMÁTICA DE TODOS LOS VALORES DE H
+% Escanea el directorio 'psi' en la nueva ruta para encontrar todos los pasos
+dir_info = dir(fullfile(ruta_mod, 'psi'));
+H_lista = {};
+for i = 1:length(dir_info)
+    nombre = dir_info(i).name;
+    % Filtrar elementos que no son carpetas o son los punteros '.' y '..'
+    if dir_info(i).isdir && ~strcmp(nombre, '.') && ~strcmp(nombre, '..')
+        H_lista{end+1} = nombre;
+    end
+end
+
+% Ordenar numéricamente para que la salida terminal sea secuencial (0.1, 0.2, 0.3...)
+[~, idx] = sort(cellfun(@str2double, H_lista));
+H_lista = H_lista(idx);
+
 %% 3. EJECUCIÓN DE LA COMPARACIÓN NUMÉRICA
 fprintf('=================================================================\n');
 fprintf(' INICIANDO VALIDACIÓN NUMÉRICA | MODO: %s\n', modo);
+fprintf(' Directorio a evaluar: %s\n', ruta_mod);
+fprintf(' Total de pasos H encontrados: %d\n', length(H_lista));
 fprintf('=================================================================\n');
 
 tolerancia_aceptable = 1e-12; % Precisión de máquina esperada
