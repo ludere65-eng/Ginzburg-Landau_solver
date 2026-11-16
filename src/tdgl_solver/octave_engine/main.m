@@ -50,6 +50,8 @@ for p = 1:num_H
     
     fprintf('Campo H = %.2f completado en %.2f s (Iteraciones: %d)\n', ...
             H_actual, toc(t_paso), estado.iteraciones);
+    fflush(stdout);
+            
 end
 
 fprintf('Simulación finalizada en %.2f segundos.\n', toc(tiempo_total));
