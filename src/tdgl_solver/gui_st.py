@@ -368,12 +368,27 @@ def main() -> None:
         # -----------------------------------------------------------------
         with subtabs[3]:
             st.markdown("Distribuciones globales para todo el dominio simulado.")
-            df_dict = {k: v.flatten() for k, v in datos.items() if v.ndim in (2, 3)}
             
-            if df_dict:
-                df = pd.DataFrame(df_dict)
-                ce1, ce2, ce3 = st.columns(3)
+            # 1. Extraer matrices y manejar las diferencias de tamaño de la malla escalonada
+            matrices = {k: v for k, v in datos.items() if v.ndim in (2, 3)}
+            
+            if matrices:
+                # 2. Encontrar la forma (shape) mínima común en todas las dimensiones
+                ref_ndim = list(matrices.values())[0].ndim
+                min_shape = [min(v.shape[i] for v in matrices.values()) for i in range(ref_ndim)]
                 
+                # 3. Recortar y aplanar para garantizar que todas las columnas midan lo mismo
+                df_dict = {}
+                for k, v in matrices.items():
+                    if ref_ndim == 2:
+                        recorte = v[:min_shape[0], :min_shape[1]]
+                    else:
+                        recorte = v[:min_shape[0], :min_shape[1], :min_shape[2]]
+                    df_dict[k] = recorte.flatten()
+                
+                df = pd.DataFrame(df_dict)
+                
+                ce1, ce2, ce3 = st.columns(3)
                 with ce1:
                     var_hist = st.selectbox("Variable distribuciones:", list(df.columns), key="v_hist")
                     fig_h = px.histogram(df, x=var_hist, marginal="box", title=f"Histograma ({var_hist})")
@@ -400,7 +415,6 @@ def main() -> None:
                     if len(vp) > 1:
                         fig_p = px.parallel_coordinates(df_samp, dimensions=vp, color=vp[0], color_continuous_scale=px.colors.diverging.Tealrose)
                         st.plotly_chart(fig_p, use_container_width=True)
-
         # -----------------------------------------------------------------
         # 5. RECONSTRUCCIÓN 3D INTERACTIVA
         # -----------------------------------------------------------------
