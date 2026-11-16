@@ -54,7 +54,7 @@ def construir_figura(
         vista = matriz
         subtitulo = f"H = {h_val}"
 
-    fig, ax = plt.subplots(figsize=(5.5, 4.5), dpi=120)
+    fig, ax = plt.subplots(figsize=(3.5, 3.0), dpi=110)
 
     # Fijar límites de escala ayuda a que la animación no parpadee al cambiar H
     vmin, vmax = None, None
@@ -166,7 +166,7 @@ def main() -> None:
         with contenedor_graficas.container():
             st.subheader(f"Estado Estacionario para Campo Aplicado H = {h_actual}")
             # Organizar en cuadrícula de máximo 2 columnas por fila para buena visibilidad
-            num_cols = 2 if len(vars_seleccionadas) > 1 else 1
+            num_cols = min(3, len(vars_seleccionadas))
             cols = st.columns(num_cols)
 
             for idx, var_key in enumerate(vars_seleccionadas):
@@ -180,7 +180,7 @@ def main() -> None:
                         fijar_escala,
                     )
                     with cols[idx % num_cols]:
-                        st.pyplot(fig)
+                        st.pyplot(fig, use_container_width=False)
                     plt.close(fig)  # Libera memoria RAM en cada fotograma
 
     if not modo_animacion:
