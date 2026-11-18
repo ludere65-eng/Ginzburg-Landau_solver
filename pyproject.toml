@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tdgl-solver"
-version = "0.1.0"
+version = "0.1.1"
 description = "Simulador numérico TDGL (2D 2-Bandas y 3D) con motor Octave e interfaces gráficas en Python."
 readme = "README.md"
 requires-python = ">=3.9"
