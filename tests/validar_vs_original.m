@@ -7,7 +7,7 @@ clear; clc;
 modo = '2D_2Bandas'; % Opciones: '3D_1Banda' | '2D_2Bandas'
 
 % ¡IMPORTANTE! Reemplaza 'TU_HASH' con la carpeta exacta que generó tu simulación
-ruta_mod = fullfile('..', 'runs', '2D_2Bandas_TU_HASH'); 
+ruta_mod = fullfile('..', 'runs', '2D_2Bandas_6b3db23d66'); 
 
 if strcmp(modo, '3D_1Banda')
     ruta_orig = fullfile('..', 'Codigo3', 'output');
