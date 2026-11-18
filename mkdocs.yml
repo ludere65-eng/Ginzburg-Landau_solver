@@ -1,0 +1,23 @@
+site_name: TDGL Solver
+site_description: Documentación oficial del simulador Ginzburg-Landau
+theme:
+  name: material
+  palette:
+    primary: indigo
+    accent: deep purple
+  features:
+    - navigation.tabs
+    - content.code.copy
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [src]
+nav:
+  - Inicio: index.md
+  - Guía de Uso: guia.md
+  - Referencia de la API:
+      - Motor de Python: api/runner.md
+      - Manejo de Datos: api/io_handler.md
