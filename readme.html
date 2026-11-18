@@ -1,0 +1,201 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="es" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TDGL Solver &mdash; documentación de TDGL Solver - 0.1.0</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=ba61de6b"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/translations.js?v=f85f4cfb"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Índice" href="genindex.html" />
+    <link rel="search" title="Búsqueda" href="search.html" />
+    <link rel="next" title="tdgl_solver" href="modules.html" />
+    <link rel="prev" title="TDGL Solver documentation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            TDGL Solver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Buscar documentos" aria-label="Buscar documentos" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contenido:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">TDGL Solver</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#caracteristicas-principales">Características Principales</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#requisitos-previos">Requisitos Previos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#instalacion">Instalación</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#uso">Uso</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#interfaz-web-analitica-streamlit">1. Interfaz Web Analítica (Streamlit)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#interfaz-de-escritorio-tkinter">2. Interfaz de Escritorio (Tkinter)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#documentacion">Documentación</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#estructura-del-proyecto">Estructura del Proyecto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">tdgl_solver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TDGL Solver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">TDGL Solver</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/readme.md.txt" rel="nofollow"> Ver código fuente de la página</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="tdgl-solver">
+<h1>TDGL Solver<a class="headerlink" href="#tdgl-solver" title="Link to this heading"></a></h1>
+<p>Un paquete integral en Python para la simulación numérica y análisis avanzado de ecuaciones dependientes del tiempo de Ginzburg-Landau (TDGL). Diseñado para estudiar la dinámica de vórtices y skyrmiones en sistemas superconductores de múltiples bandas.</p>
+<section id="caracteristicas-principales">
+<h2>Características Principales<a class="headerlink" href="#caracteristicas-principales" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Motor Numérico Híbrido:</strong> Núcleo de cálculo modularizado en GNU Octave encapsulado mediante un orquestador en Python.</p></li>
+<li><p><strong>Modelos Soportados:</strong></p>
+<ul>
+<li><p><strong>2D de Dos Bandas:</strong> Acoplamiento interbanda (<code class="docutils literal notranslate"><span class="pre">Gap</span></code>) para densidades fraccionarias.</p></li>
+<li><p><strong>3D de Una Banda:</strong> Entornos de caja interna/externa con geometrías configurables (<code class="docutils literal notranslate"><span class="pre">tau</span></code>) y suavizado de bordes.</p></li>
+</ul>
+</li>
+<li><p><strong>Sistema de Caché Inteligente:</strong> Detección de huella digital (SHA-256) de parámetros que evita recalcular configuraciones ya simuladas.</p></li>
+<li><p><strong>Interfaces Gráficas de Usuario (GUIs):</strong></p>
+<ul>
+<li><p><strong>Escritorio (Tkinter):</strong> Monitor de progreso en tiempo real y ejecución asíncrona.</p></li>
+<li><p><strong>Web/Dashboard (Streamlit):</strong> Análisis multivariable con Plotly, correlaciones estadísticas (Pandas/Seaborn), streamlines vectoriales y reconstrucción de vórtices 3D.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="requisitos-previos">
+<h2>Requisitos Previos<a class="headerlink" href="#requisitos-previos" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>GNU Octave:</strong> El motor requiere que GNU Octave esté instalado y disponible en las variables de entorno del sistema (<code class="docutils literal notranslate"><span class="pre">PATH</span></code>).</p>
+<ul class="simple">
+<li><p><strong>Linux (Debian/Ubuntu):</strong> <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">apt</span> <span class="pre">install</span> <span class="pre">octave</span></code></p></li>
+<li><p><strong>Windows:</strong> Descargar desde <a class="reference external" href="https://gnu.org/software/octave">gnu.org/software/octave</a> y agregar a la ruta (<code class="docutils literal notranslate"><span class="pre">PATH</span></code>).</p></li>
+</ul>
+</li>
+<li><p><strong>Python 3.9+</strong></p></li>
+</ol>
+</section>
+<section id="instalacion">
+<h2>Instalación<a class="headerlink" href="#instalacion" title="Link to this heading"></a></h2>
+<p>Clona el repositorio e instala el paquete con todas sus dependencias en modo editable:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ludere65-eng/Ginzburg-Landau_solver.git
+<span class="nb">cd</span><span class="w"> </span>Ginzburg-Landau_solver
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
+</div>
+<p>Para instalar también las herramientas de generación de documentación:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[docs]"</span>
+</pre></div>
+</div>
+</section>
+<section id="uso">
+<h2>Uso<a class="headerlink" href="#uso" title="Link to this heading"></a></h2>
+<p>Una vez instalado, tienes dos formas de lanzar la suite de herramientas:</p>
+<section id="interfaz-web-analitica-streamlit">
+<h3>1. Interfaz Web Analítica (Streamlit)<a class="headerlink" href="#interfaz-web-analitica-streamlit" title="Link to this heading"></a></h3>
+<p>Ideal para análisis de datos interactivos, visualización 3D y gráficos estadísticos:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>streamlit<span class="w"> </span>run<span class="w"> </span>src/tdgl_solver/gui_st.py
+</pre></div>
+</div>
+</section>
+<section id="interfaz-de-escritorio-tkinter">
+<h3>2. Interfaz de Escritorio (Tkinter)<a class="headerlink" href="#interfaz-de-escritorio-tkinter" title="Link to this heading"></a></h3>
+<p>Ligera y nativa, ideal para lanzar simulaciones rápidamente de forma local:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tdgl-tk
+</pre></div>
+</div>
+</section>
+</section>
+<section id="documentacion">
+<h2>Documentación<a class="headerlink" href="#documentacion" title="Link to this heading"></a></h2>
+<p>Para generar y visualizar la documentación técnica localmente con MkDocs:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdocs<span class="w"> </span>serve
+</pre></div>
+</div>
+<p>Para desplegarla directamente en GitHub Pages:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdocs<span class="w"> </span>gh-deploy
+</pre></div>
+</div>
+</section>
+<section id="estructura-del-proyecto">
+<h2>Estructura del Proyecto<a class="headerlink" href="#estructura-del-proyecto" title="Link to this heading"></a></h2>
+<p>Los resultados de las simulaciones se guardan automáticamente en la carpeta <code class="docutils literal notranslate"><span class="pre">runs/</span></code> en la raíz del proyecto, clasificados por modelo y un hash único de los parámetros físicos utilizados. Las carpetas <code class="docutils literal notranslate"><span class="pre">Codigo2/output</span></code> y <code class="docutils literal notranslate"><span class="pre">Codigo3/output</span></code> mantienen la compatibilidad con las corridas <em>legacy</em>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pie de página">
+        <a href="index.html" class="btn btn-neutral float-left" title="TDGL Solver documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Anterior</a>
+        <a href="modules.html" class="btn btn-neutral float-right" title="tdgl_solver" accesskey="n" rel="next">Siguiente <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Derechos de autor 2026, Luder Espitia Guzmán.</p>
+  </div>
+
+  Compilado con <a href="https://www.sphinx-doc.org/">Sphinx</a> usando un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    proporcionado por <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,440 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="es" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>tdgl_solver package &mdash; documentación de TDGL Solver - 0.1.0</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=ba61de6b"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/translations.js?v=f85f4cfb"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Índice" href="genindex.html" />
+    <link rel="search" title="Búsqueda" href="search.html" />
+    <link rel="prev" title="tdgl_solver" href="modules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            TDGL Solver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Buscar documentos" aria-label="Buscar documentos" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contenido:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="readme.html">TDGL Solver</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">tdgl_solver</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">tdgl_solver package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-tdgl_solver.gui_st">tdgl_solver.gui_st module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#tdgl_solver.gui_st.construir_figura_base"><code class="docutils literal notranslate"><span class="pre">construir_figura_base()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tdgl_solver.gui_st.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tdgl_solver.gui_st.mostrar_panel_simulacion"><code class="docutils literal notranslate"><span class="pre">mostrar_panel_simulacion()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tdgl_solver.gui_st.resolver_ruta"><code class="docutils literal notranslate"><span class="pre">resolver_ruta()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-tdgl_solver.gui_tk">tdgl_solver.gui_tk module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#tdgl_solver.gui_tk.TDGLApp"><code class="docutils literal notranslate"><span class="pre">TDGLApp</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tdgl_solver.gui_tk.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-tdgl_solver.io_handler">tdgl_solver.io_handler module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#tdgl_solver.io_handler.TDGLDataLoader"><code class="docutils literal notranslate"><span class="pre">TDGLDataLoader</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-tdgl_solver.runner">tdgl_solver.runner module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#tdgl_solver.runner.TDGLRunner"><code class="docutils literal notranslate"><span class="pre">TDGLRunner</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-tdgl_solver">Module contents</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#tdgl_solver.TDGLDataLoader"><code class="docutils literal notranslate"><span class="pre">TDGLDataLoader</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tdgl_solver.TDGLRunner"><code class="docutils literal notranslate"><span class="pre">TDGLRunner</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TDGL Solver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">tdgl_solver</a></li>
+      <li class="breadcrumb-item active">tdgl_solver package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/tdgl_solver.rst.txt" rel="nofollow"> Ver código fuente de la página</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="tdgl-solver-package">
+<h1>tdgl_solver package<a class="headerlink" href="#tdgl-solver-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-tdgl_solver.gui_st">
+<span id="tdgl-solver-gui-st-module"></span><h2>tdgl_solver.gui_st module<a class="headerlink" href="#module-tdgl_solver.gui_st" title="Link to this heading"></a></h2>
+<p>Interfaz web interactiva completa en Streamlit para simulación TDGL (con caché)
+y análisis avanzado (cuadrículas, mapas interactivos, vectores, estadística y 3D).</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="tdgl_solver.gui_st.construir_figura_base">
+<span class="sig-prename descclassname"><span class="pre">tdgl_solver.gui_st.</span></span><span class="sig-name descname"><span class="pre">construir_figura_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matriz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h_val</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fijar_escala</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Figure</span></span></span><a class="reference internal" href="_modules/tdgl_solver/gui_st.html#construir_figura_base"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.gui_st.construir_figura_base" title="Link to this definition"></a></dt>
+<dd><p>Genera figura Matplotlib compacta para la cuadrícula y animación.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tdgl_solver.gui_st.main">
+<span class="sig-prename descclassname"><span class="pre">tdgl_solver.gui_st.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/tdgl_solver/gui_st.html#main"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.gui_st.main" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tdgl_solver.gui_st.mostrar_panel_simulacion">
+<span class="sig-prename descclassname"><span class="pre">tdgl_solver.gui_st.</span></span><span class="sig-name descname"><span class="pre">mostrar_panel_simulacion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">runner</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#tdgl_solver.runner.TDGLRunner" title="tdgl_solver.runner.TDGLRunner"><span class="pre">TDGLRunner</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/tdgl_solver/gui_st.html#mostrar_panel_simulacion"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.gui_st.mostrar_panel_simulacion" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tdgl_solver.gui_st.resolver_ruta">
+<span class="sig-prename descclassname"><span class="pre">tdgl_solver.gui_st.</span></span><span class="sig-name descname"><span class="pre">resolver_ruta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ruta_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Path</span></span></span><a class="reference internal" href="_modules/tdgl_solver/gui_st.html#resolver_ruta"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.gui_st.resolver_ruta" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-tdgl_solver.gui_tk">
+<span id="tdgl-solver-gui-tk-module"></span><h2>tdgl_solver.gui_tk module<a class="headerlink" href="#module-tdgl_solver.gui_tk" title="Link to this heading"></a></h2>
+<p>Interfaz de escritorio nativa en Tkinter con pestañas para Visualización/Animación
+y Cálculo de nuevas simulaciones TDGL (en segundo plano con caché de parámetros).</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="tdgl_solver.gui_tk.TDGLApp">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tdgl_solver.gui_tk.</span></span><span class="sig-name descname"><span class="pre">TDGLApp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tkinter.Tk</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tdgl_solver/gui_tk.html#TDGLApp"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.gui_tk.TDGLApp" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Aplicación de escritorio con soporte de simulación asíncrona y caché.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.gui_tk.TDGLApp.actualizar_campos_formulario">
+<span class="sig-name descname"><span class="pre">actualizar_campos_formulario</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/tdgl_solver/gui_tk.html#TDGLApp.actualizar_campos_formulario"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.gui_tk.TDGLApp.actualizar_campos_formulario" title="Link to this definition"></a></dt>
+<dd><p>Habilita o deshabilita campos exclusivos de 2D o 3D para guiar al usuario.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.gui_tk.TDGLApp.actualizar_lista_modelos">
+<span class="sig-name descname"><span class="pre">actualizar_lista_modelos</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/tdgl_solver/gui_tk.html#TDGLApp.actualizar_lista_modelos"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.gui_tk.TDGLApp.actualizar_lista_modelos" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.gui_tk.TDGLApp.al_cambiar_campo">
+<span class="sig-name descname"><span class="pre">al_cambiar_campo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/tdgl_solver/gui_tk.html#TDGLApp.al_cambiar_campo"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.gui_tk.TDGLApp.al_cambiar_campo" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.gui_tk.TDGLApp.al_mover_slider_z">
+<span class="sig-name descname"><span class="pre">al_mover_slider_z</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/tdgl_solver/gui_tk.html#TDGLApp.al_mover_slider_z"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.gui_tk.TDGLApp.al_mover_slider_z" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.gui_tk.TDGLApp.alternar_animacion">
+<span class="sig-name descname"><span class="pre">alternar_animacion</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/tdgl_solver/gui_tk.html#TDGLApp.alternar_animacion"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.gui_tk.TDGLApp.alternar_animacion" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.gui_tk.TDGLApp.cargar_modelo_seleccionado">
+<span class="sig-name descname"><span class="pre">cargar_modelo_seleccionado</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/tdgl_solver/gui_tk.html#TDGLApp.cargar_modelo_seleccionado"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.gui_tk.TDGLApp.cargar_modelo_seleccionado" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.gui_tk.TDGLApp.configurar_slider_z">
+<span class="sig-name descname"><span class="pre">configurar_slider_z</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/tdgl_solver/gui_tk.html#TDGLApp.configurar_slider_z"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.gui_tk.TDGLApp.configurar_slider_z" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.gui_tk.TDGLApp.crear_tab_simulacion">
+<span class="sig-name descname"><span class="pre">crear_tab_simulacion</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/tdgl_solver/gui_tk.html#TDGLApp.crear_tab_simulacion"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.gui_tk.TDGLApp.crear_tab_simulacion" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.gui_tk.TDGLApp.crear_tab_visualizador">
+<span class="sig-name descname"><span class="pre">crear_tab_visualizador</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/tdgl_solver/gui_tk.html#TDGLApp.crear_tab_visualizador"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.gui_tk.TDGLApp.crear_tab_visualizador" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.gui_tk.TDGLApp.detener_animacion">
+<span class="sig-name descname"><span class="pre">detener_animacion</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/tdgl_solver/gui_tk.html#TDGLApp.detener_animacion"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.gui_tk.TDGLApp.detener_animacion" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.gui_tk.TDGLApp.dibujar_cuadricula">
+<span class="sig-name descname"><span class="pre">dibujar_cuadricula</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/tdgl_solver/gui_tk.html#TDGLApp.dibujar_cuadricula"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.gui_tk.TDGLApp.dibujar_cuadricula" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.gui_tk.TDGLApp.iniciar_simulacion_hilo">
+<span class="sig-name descname"><span class="pre">iniciar_simulacion_hilo</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/tdgl_solver/gui_tk.html#TDGLApp.iniciar_simulacion_hilo"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.gui_tk.TDGLApp.iniciar_simulacion_hilo" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.gui_tk.TDGLApp.procesar_cola_logs">
+<span class="sig-name descname"><span class="pre">procesar_cola_logs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/tdgl_solver/gui_tk.html#TDGLApp.procesar_cola_logs"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.gui_tk.TDGLApp.procesar_cola_logs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.gui_tk.TDGLApp.recolectar_parametros">
+<span class="sig-name descname"><span class="pre">recolectar_parametros</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/tdgl_solver/gui_tk.html#TDGLApp.recolectar_parametros"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.gui_tk.TDGLApp.recolectar_parametros" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.gui_tk.TDGLApp.seleccionar_y_mostrar_corrida">
+<span class="sig-name descname"><span class="pre">seleccionar_y_mostrar_corrida</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/tdgl_solver/gui_tk.html#TDGLApp.seleccionar_y_mostrar_corrida"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.gui_tk.TDGLApp.seleccionar_y_mostrar_corrida" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tdgl_solver.gui_tk.main">
+<span class="sig-prename descclassname"><span class="pre">tdgl_solver.gui_tk.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/tdgl_solver/gui_tk.html#main"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.gui_tk.main" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-tdgl_solver.io_handler">
+<span id="tdgl-solver-io-handler-module"></span><h2>tdgl_solver.io_handler module<a class="headerlink" href="#module-tdgl_solver.io_handler" title="Link to this heading"></a></h2>
+<p>Módulo de entrada/salida (I/O) para cargar matrices .mat generadas por el motor TDGL
+(compatible con formato binario MATLAB y formato texto ASCII de GNU Octave).</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="tdgl_solver.io_handler.TDGLDataLoader">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tdgl_solver.io_handler.</span></span><span class="sig-name descname"><span class="pre">TDGLDataLoader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tdgl_solver/io_handler.html#TDGLDataLoader"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.io_handler.TDGLDataLoader" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Cargador estructurado de resultados físicos en formato <cite>.mat</cite> o Octave ASCII.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.io_handler.TDGLDataLoader.cargar_paso_campo">
+<span class="sig-name descname"><span class="pre">cargar_paso_campo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/tdgl_solver/io_handler.html#TDGLDataLoader.cargar_paso_campo"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.io_handler.TDGLDataLoader.cargar_paso_campo" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.io_handler.TDGLDataLoader.listar_campos_disponibles">
+<span class="sig-name descname"><span class="pre">listar_campos_disponibles</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/tdgl_solver/io_handler.html#TDGLDataLoader.listar_campos_disponibles"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.io_handler.TDGLDataLoader.listar_campos_disponibles" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-tdgl_solver.runner">
+<span id="tdgl-solver-runner-module"></span><h2>tdgl_solver.runner module<a class="headerlink" href="#module-tdgl_solver.runner" title="Link to this heading"></a></h2>
+<p>Módulo orquestador para ejecutar el motor numérico TDGL en GNU Octave desde Python,
+con sistema de caché por huella digital (SHA-256) y monitoreo en tiempo real.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="tdgl_solver.runner.TDGLRunner">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tdgl_solver.runner.</span></span><span class="sig-name descname"><span class="pre">TDGLRunner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_runs_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tdgl_solver/runner.html#TDGLRunner"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.runner.TDGLRunner" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Controlador principal para configurar, cachear y ejecutar simulaciones TDGL.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.runner.TDGLRunner.calcular_hash_y_ruta">
+<span class="sig-name descname"><span class="pre">calcular_hash_y_ruta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/tdgl_solver/runner.html#TDGLRunner.calcular_hash_y_ruta"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.runner.TDGLRunner.calcular_hash_y_ruta" title="Link to this definition"></a></dt>
+<dd><p>Genera un identificador único (SHA-256) basado únicamente en los parámetros activos.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.runner.TDGLRunner.ejecutar_con_progreso">
+<span class="sig-name descname"><span class="pre">ejecutar_con_progreso</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback_linea</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forzar_recalculo</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/tdgl_solver/runner.html#TDGLRunner.ejecutar_con_progreso"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.runner.TDGLRunner.ejecutar_con_progreso" title="Link to this definition"></a></dt>
+<dd><p>Ejecuta la simulación en Octave transmitiendo el progreso línea a línea.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Devuelve<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(Ruta de salida, True si provino del caché sin recalcular).</p>
+</dd>
+<dt class="field-even">Tipo del valor devuelto<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple[Path, bool]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.runner.TDGLRunner.generar_configuracion">
+<span class="sig-name descname"><span class="pre">generar_configuracion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Path</span></span></span><a class="reference internal" href="_modules/tdgl_solver/runner.html#TDGLRunner.generar_configuracion"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.runner.TDGLRunner.generar_configuracion" title="Link to this definition"></a></dt>
+<dd><p>Escribe config_simulacion.m y guarda metadata.json en la carpeta de la corrida.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.runner.TDGLRunner.listar_simulaciones_cacheadas">
+<span class="sig-name descname"><span class="pre">listar_simulaciones_cacheadas</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/tdgl_solver/runner.html#TDGLRunner.listar_simulaciones_cacheadas"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.runner.TDGLRunner.listar_simulaciones_cacheadas" title="Link to this definition"></a></dt>
+<dd><p>Devuelve un diccionario {Etiqueta legible: ruta} de todas las simulaciones en “runs/”.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.runner.TDGLRunner.normalizar_parametros">
+<span class="sig-name descname"><span class="pre">normalizar_parametros</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/tdgl_solver/runner.html#TDGLRunner.normalizar_parametros"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.runner.TDGLRunner.normalizar_parametros" title="Link to this definition"></a></dt>
+<dd><p>Completa valores por defecto y filtra según el modelo (2D_2Bandas vs 3D_1Banda).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.runner.TDGLRunner.verificar_cache">
+<span class="sig-name descname"><span class="pre">verificar_cache</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/tdgl_solver/runner.html#TDGLRunner.verificar_cache"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.runner.TDGLRunner.verificar_cache" title="Link to this definition"></a></dt>
+<dd><p>Verifica si una simulación con exactamente los mismos parámetros ya fue completada.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Devuelve<span class="colon">:</span></dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>True si ya existe y está completa, False en caso contrario.</p></li>
+<li><p>Ruta al directorio de resultados.</p></li>
+<li><p>Diccionario de parámetros normalizados.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Tipo del valor devuelto<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple[bool, Path, Dict[str, Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-tdgl_solver">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-tdgl_solver" title="Link to this heading"></a></h2>
+<p>Paquete <cite>tdgl_solver</cite>: Simulación y análisis de vórtices en superconductores
+mediante ecuaciones dependientes del tiempo de Ginzburg-Landau (2D y 3D).</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="tdgl_solver.TDGLDataLoader">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tdgl_solver.</span></span><span class="sig-name descname"><span class="pre">TDGLDataLoader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tdgl_solver/io_handler.html#TDGLDataLoader"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.TDGLDataLoader" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Cargador estructurado de resultados físicos en formato <cite>.mat</cite> o Octave ASCII.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.TDGLDataLoader.cargar_paso_campo">
+<span class="sig-name descname"><span class="pre">cargar_paso_campo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/tdgl_solver/io_handler.html#TDGLDataLoader.cargar_paso_campo"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.TDGLDataLoader.cargar_paso_campo" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.TDGLDataLoader.listar_campos_disponibles">
+<span class="sig-name descname"><span class="pre">listar_campos_disponibles</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/tdgl_solver/io_handler.html#TDGLDataLoader.listar_campos_disponibles"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.TDGLDataLoader.listar_campos_disponibles" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tdgl_solver.TDGLRunner">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tdgl_solver.</span></span><span class="sig-name descname"><span class="pre">TDGLRunner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_runs_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tdgl_solver/runner.html#TDGLRunner"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.TDGLRunner" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Controlador principal para configurar, cachear y ejecutar simulaciones TDGL.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.TDGLRunner.calcular_hash_y_ruta">
+<span class="sig-name descname"><span class="pre">calcular_hash_y_ruta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/tdgl_solver/runner.html#TDGLRunner.calcular_hash_y_ruta"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.TDGLRunner.calcular_hash_y_ruta" title="Link to this definition"></a></dt>
+<dd><p>Genera un identificador único (SHA-256) basado únicamente en los parámetros activos.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.TDGLRunner.ejecutar_con_progreso">
+<span class="sig-name descname"><span class="pre">ejecutar_con_progreso</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback_linea</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forzar_recalculo</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/tdgl_solver/runner.html#TDGLRunner.ejecutar_con_progreso"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.TDGLRunner.ejecutar_con_progreso" title="Link to this definition"></a></dt>
+<dd><p>Ejecuta la simulación en Octave transmitiendo el progreso línea a línea.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Devuelve<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(Ruta de salida, True si provino del caché sin recalcular).</p>
+</dd>
+<dt class="field-even">Tipo del valor devuelto<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple[Path, bool]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.TDGLRunner.generar_configuracion">
+<span class="sig-name descname"><span class="pre">generar_configuracion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Path</span></span></span><a class="reference internal" href="_modules/tdgl_solver/runner.html#TDGLRunner.generar_configuracion"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.TDGLRunner.generar_configuracion" title="Link to this definition"></a></dt>
+<dd><p>Escribe config_simulacion.m y guarda metadata.json en la carpeta de la corrida.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.TDGLRunner.listar_simulaciones_cacheadas">
+<span class="sig-name descname"><span class="pre">listar_simulaciones_cacheadas</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/tdgl_solver/runner.html#TDGLRunner.listar_simulaciones_cacheadas"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.TDGLRunner.listar_simulaciones_cacheadas" title="Link to this definition"></a></dt>
+<dd><p>Devuelve un diccionario {Etiqueta legible: ruta} de todas las simulaciones en “runs/”.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.TDGLRunner.normalizar_parametros">
+<span class="sig-name descname"><span class="pre">normalizar_parametros</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/tdgl_solver/runner.html#TDGLRunner.normalizar_parametros"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.TDGLRunner.normalizar_parametros" title="Link to this definition"></a></dt>
+<dd><p>Completa valores por defecto y filtra según el modelo (2D_2Bandas vs 3D_1Banda).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tdgl_solver.TDGLRunner.verificar_cache">
+<span class="sig-name descname"><span class="pre">verificar_cache</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/tdgl_solver/runner.html#TDGLRunner.verificar_cache"><span class="viewcode-link"><span class="pre">[fuente]</span></span></a><a class="headerlink" href="#tdgl_solver.TDGLRunner.verificar_cache" title="Link to this definition"></a></dt>
+<dd><p>Verifica si una simulación con exactamente los mismos parámetros ya fue completada.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Devuelve<span class="colon">:</span></dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>True si ya existe y está completa, False en caso contrario.</p></li>
+<li><p>Ruta al directorio de resultados.</p></li>
+<li><p>Diccionario de parámetros normalizados.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Tipo del valor devuelto<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple[bool, Path, Dict[str, Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pie de página">
+        <a href="modules.html" class="btn btn-neutral float-left" title="tdgl_solver" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Anterior</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Derechos de autor 2026, Luder Espitia Guzmán.</p>
+  </div>
+
+  Compilado con <a href="https://www.sphinx-doc.org/">Sphinx</a> usando un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    proporcionado por <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

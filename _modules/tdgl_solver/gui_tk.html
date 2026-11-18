@@ -1,0 +1,709 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="es" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>tdgl_solver.gui_tk &mdash; documentación de TDGL Solver - 0.1.0</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=ba61de6b"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/translations.js?v=f85f4cfb"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Índice" href="../../genindex.html" />
+    <link rel="search" title="Búsqueda" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            TDGL Solver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Buscar documentos" aria-label="Buscar documentos" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contenido:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html">TDGL Solver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">tdgl_solver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TDGL Solver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Código de módulo</a></li>
+      <li class="breadcrumb-item active">tdgl_solver.gui_tk</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Código fuente para tdgl_solver.gui_tk</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""</span>
+<span class="sd">Interfaz de escritorio nativa en Tkinter con pestañas para Visualización/Animación</span>
+<span class="sd">y Cálculo de nuevas simulaciones TDGL (en segundo plano con caché de parámetros).</span>
+<span class="sd">"""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">queue</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tkinter</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tk</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tkinter</span><span class="w"> </span><span class="kn">import</span> <span class="n">ttk</span><span class="p">,</span> <span class="n">messagebox</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.backends.backend_tkagg</span><span class="w"> </span><span class="kn">import</span> <span class="n">FigureCanvasTkAgg</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tdgl_solver.io_handler</span><span class="w"> </span><span class="kn">import</span> <span class="n">TDGLDataLoader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tdgl_solver.runner</span><span class="w"> </span><span class="kn">import</span> <span class="n">TDGLRunner</span>
+
+<span class="n">RUTAS_BASE</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"Modularizado"</span><span class="p">:</span> <span class="s2">"output_modular"</span><span class="p">,</span>
+    <span class="s2">"2D_2bandas sin modularizar"</span><span class="p">:</span> <span class="s2">"Codigo2/output"</span><span class="p">,</span>
+    <span class="s2">"3D_1banda sin modularizar"</span><span class="p">:</span> <span class="s2">"Codigo3/output"</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">NOMBRES_VARIABLES</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"d"</span><span class="p">:</span> <span class="s2">"Densidad Banda 1 (d)"</span><span class="p">,</span>
+    <span class="s2">"B"</span><span class="p">:</span> <span class="s2">"Densidad Banda 2 (B)"</span><span class="p">,</span>
+    <span class="s2">"d4"</span><span class="p">:</span> <span class="s2">"Parámetro Orden 3D (d4)"</span><span class="p">,</span>
+    <span class="s2">"d2"</span><span class="p">:</span> <span class="s2">"Log Orden (d2)"</span><span class="p">,</span>
+    <span class="s2">"hz"</span><span class="p">:</span> <span class="s2">"Campo Magnético (hz)"</span><span class="p">,</span>
+    <span class="s2">"phase"</span><span class="p">:</span> <span class="s2">"Fase (phase)"</span><span class="p">,</span>
+    <span class="s2">"aJx"</span><span class="p">:</span> <span class="s2">"Supercorriente X (aJx)"</span><span class="p">,</span>
+    <span class="s2">"aJy"</span><span class="p">:</span> <span class="s2">"Supercorriente Y (aJy)"</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="TDGLApp">
+<a class="viewcode-back" href="../../tdgl_solver.html#tdgl_solver.gui_tk.TDGLApp">[documentos]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TDGLApp</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Aplicación de escritorio con soporte de simulación asíncrona y caché."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root</span><span class="p">:</span> <span class="n">tk</span><span class="o">.</span><span class="n">Tk</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">root</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">"TDGL Solver — Suite de Simulación y Análisis"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">geometry</span><span class="p">(</span><span class="s2">"1160x750"</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">TDGLRunner</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rutas_disponibles</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loader</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">campos</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vars_disponibles</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datos_actuales</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">animando</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">after_id</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_queue</span><span class="p">:</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simulando</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># Pestañas principales</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">notebook</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Notebook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">notebook</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">BOTH</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tab_vis</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">notebook</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tab_sim</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">notebook</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">notebook</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tab_vis</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"  📊 Visualizador y Animación  "</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">notebook</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tab_sim</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"  ⚙️ Configurar y Simular  "</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">crear_tab_visualizador</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">crear_tab_simulacion</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">actualizar_lista_modelos</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cargar_modelo_seleccionado</span><span class="p">()</span>
+
+    <span class="c1"># -------------------------------------------------------------------------</span>
+    <span class="c1"># PESTAÑA 1: VISUALIZADOR Y ANIMACIÓN</span>
+    <span class="c1"># -------------------------------------------------------------------------</span>
+<div class="viewcode-block" id="TDGLApp.crear_tab_visualizador">
+<a class="viewcode-back" href="../../tdgl_solver.html#tdgl_solver.gui_tk.TDGLApp.crear_tab_visualizador">[documentos]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">crear_tab_visualizador</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">frame_ctrl</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tab_vis</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">280</span><span class="p">)</span>
+        <span class="n">frame_ctrl</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">Y</span><span class="p">)</span>
+        <span class="n">frame_ctrl</span><span class="o">.</span><span class="n">pack_propagate</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span>
+            <span class="n">frame_ctrl</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"1. Conjunto de Simulación:"</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="p">(</span><span class="s2">"Sans"</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">"bold"</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb_modelo</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Combobox</span><span class="p">(</span><span class="n">frame_ctrl</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="s2">"readonly"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb_modelo</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb_modelo</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s2">"&lt;&lt;ComboboxSelected&gt;&gt;"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cargar_modelo_seleccionado</span><span class="p">)</span>
+
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span>
+            <span class="n">frame_ctrl</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">"🔄 Refrescar Avance / Caché"</span><span class="p">,</span>
+            <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cargar_modelo_seleccionado</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span>
+            <span class="n">frame_ctrl</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"2. Variables (Multi-selección):"</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="p">(</span><span class="s2">"Sans"</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">"bold"</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">listbox_vars</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Listbox</span><span class="p">(</span>
+            <span class="n">frame_ctrl</span><span class="p">,</span> <span class="n">selectmode</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">MULTIPLE</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">exportselection</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listbox_vars</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listbox_vars</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s2">"&lt;&lt;ListboxSelect&gt;&gt;"</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dibujar_cuadricula</span><span class="p">())</span>
+
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">frame_ctrl</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"Paleta de colores:"</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb_cmap</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Combobox</span><span class="p">(</span>
+            <span class="n">frame_ctrl</span><span class="p">,</span>
+            <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="s2">"inferno"</span><span class="p">,</span> <span class="s2">"viridis"</span><span class="p">,</span> <span class="s2">"plasma"</span><span class="p">,</span> <span class="s2">"magma"</span><span class="p">,</span> <span class="s2">"twilight"</span><span class="p">,</span> <span class="s2">"coolwarm"</span><span class="p">],</span>
+            <span class="n">state</span><span class="o">=</span><span class="s2">"readonly"</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb_cmap</span><span class="o">.</span><span class="n">current</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb_cmap</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb_cmap</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s2">"&lt;&lt;ComboboxSelected&gt;&gt;"</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dibujar_cuadricula</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">var_fijar_escala</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">BooleanVar</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Checkbutton</span><span class="p">(</span>
+            <span class="n">frame_ctrl</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">"Fijar escala de color"</span><span class="p">,</span>
+            <span class="n">variable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">var_fijar_escala</span><span class="p">,</span>
+            <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dibujar_cuadricula</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lbl_z</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span>
+            <span class="n">frame_ctrl</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"3. Corte Transversal Z: N/A"</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="p">(</span><span class="s2">"Sans"</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">"bold"</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lbl_z</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slider_z</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span>
+            <span class="n">frame_ctrl</span><span class="p">,</span>
+            <span class="n">from_</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">to</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">orient</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">,</span>
+            <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">al_mover_slider_z</span><span class="p">,</span>
+            <span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">DISABLED</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slider_z</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span>
+            <span class="n">frame_ctrl</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"4. Campo Magnético (H):"</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="p">(</span><span class="s2">"Sans"</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">"bold"</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb_campo</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Combobox</span><span class="p">(</span><span class="n">frame_ctrl</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="s2">"readonly"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb_campo</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb_campo</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s2">"&lt;&lt;ComboboxSelected&gt;&gt;"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">al_cambiar_campo</span><span class="p">)</span>
+
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">frame_ctrl</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"Velocidad animación (ms):"</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slider_vel</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span>
+            <span class="n">frame_ctrl</span><span class="p">,</span> <span class="n">from_</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">HORIZONTAL</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slider_vel</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">300</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slider_vel</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">btn_animar</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span>
+            <span class="n">frame_ctrl</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"▶ Iniciar Animación en H"</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">alternar_animacion</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btn_animar</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">frame_plot</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tab_vis</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frame_plot</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">BOTH</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">6.2</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span> <span class="o">=</span> <span class="n">FigureCanvasTkAgg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="p">,</span> <span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">frame_plot</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">get_tk_widget</span><span class="p">()</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">BOTH</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+    <span class="c1"># -------------------------------------------------------------------------</span>
+    <span class="c1"># PESTAÑA 2: CONFIGURACIÓN Y EJECUCIÓN DE SIMULACIONES</span>
+    <span class="c1"># -------------------------------------------------------------------------</span>
+<div class="viewcode-block" id="TDGLApp.crear_tab_simulacion">
+<a class="viewcode-back" href="../../tdgl_solver.html#tdgl_solver.gui_tk.TDGLApp.crear_tab_simulacion">[documentos]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">crear_tab_simulacion</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">frame_top</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tab_sim</span><span class="p">)</span>
+        <span class="n">frame_top</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span>
+            <span class="n">frame_top</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"Seleccionar Modelo a Simular:"</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="p">(</span><span class="s2">"Sans"</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="s2">"bold"</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">var_sim_modelo</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s2">"2D_2Bandas"</span><span class="p">)</span>
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Radiobutton</span><span class="p">(</span>
+            <span class="n">frame_top</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">"2D (2 Bandas acopladas)"</span><span class="p">,</span>
+            <span class="n">variable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">var_sim_modelo</span><span class="p">,</span>
+            <span class="n">value</span><span class="o">=</span><span class="s2">"2D_2Bandas"</span><span class="p">,</span>
+            <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">actualizar_campos_formulario</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Radiobutton</span><span class="p">(</span>
+            <span class="n">frame_top</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">"3D (1 Banda con caja interna)"</span><span class="p">,</span>
+            <span class="n">variable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">var_sim_modelo</span><span class="p">,</span>
+            <span class="n">value</span><span class="o">=</span><span class="s2">"3D_1Banda"</span><span class="p">,</span>
+            <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">actualizar_campos_formulario</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="c1"># Contenedor de 3 columnas para parámetros</span>
+        <span class="n">frame_cols</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tab_sim</span><span class="p">)</span>
+        <span class="n">frame_cols</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="n">col1</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">LabelFrame</span><span class="p">(</span><span class="n">frame_cols</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"1. Geometría y Malla"</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">col1</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">BOTH</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="n">col2</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">LabelFrame</span><span class="p">(</span><span class="n">frame_cols</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"2. Física y Bordes"</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">col2</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">BOTH</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="n">col3</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">LabelFrame</span><span class="p">(</span><span class="n">frame_cols</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"3. Barrido Magnético y Control"</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">col3</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">BOTH</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">entries</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">tk</span><span class="o">.</span><span class="n">Variable</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">agregar_campo</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">label_txt</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default_val</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+            <span class="n">row</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">label_txt</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">22</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">)</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">default_val</span><span class="p">))</span>
+            <span class="n">ent</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">textvariable</span><span class="o">=</span><span class="n">var</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+            <span class="n">ent</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">entries</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">var</span>
+            <span class="k">return</span> <span class="n">ent</span>
+
+        <span class="c1"># Columna 1: Geometría</span>
+        <span class="n">agregar_campo</span><span class="p">(</span><span class="n">col1</span><span class="p">,</span> <span class="s2">"Paso dx:"</span><span class="p">,</span> <span class="s2">"dx"</span><span class="p">,</span> <span class="s2">"0.25"</span><span class="p">)</span>
+        <span class="n">agregar_campo</span><span class="p">(</span><span class="n">col1</span><span class="p">,</span> <span class="s2">"Paso dy:"</span><span class="p">,</span> <span class="s2">"dy"</span><span class="p">,</span> <span class="s2">"0.25"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ent_dz</span> <span class="o">=</span> <span class="n">agregar_campo</span><span class="p">(</span><span class="n">col1</span><span class="p">,</span> <span class="s2">"Paso dz (3D):"</span><span class="p">,</span> <span class="s2">"dz"</span><span class="p">,</span> <span class="s2">"0.25"</span><span class="p">)</span>
+        <span class="n">agregar_campo</span><span class="p">(</span><span class="n">col1</span><span class="p">,</span> <span class="s2">"Caja ext. X (a):"</span><span class="p">,</span> <span class="s2">"a"</span><span class="p">,</span> <span class="s2">"10.0"</span><span class="p">)</span>
+        <span class="n">agregar_campo</span><span class="p">(</span><span class="n">col1</span><span class="p">,</span> <span class="s2">"Caja ext. Y (b):"</span><span class="p">,</span> <span class="s2">"b"</span><span class="p">,</span> <span class="s2">"10.0"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ent_c</span> <span class="o">=</span> <span class="n">agregar_campo</span><span class="p">(</span><span class="n">col1</span><span class="p">,</span> <span class="s2">"Caja ext. Z (c, 3D):"</span><span class="p">,</span> <span class="s2">"c"</span><span class="p">,</span> <span class="s2">"10.0"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ent_aa</span> <span class="o">=</span> <span class="n">agregar_campo</span><span class="p">(</span><span class="n">col1</span><span class="p">,</span> <span class="s2">"Caja int. X (aa, 3D):"</span><span class="p">,</span> <span class="s2">"aa"</span><span class="p">,</span> <span class="s2">"10.0"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ent_bb</span> <span class="o">=</span> <span class="n">agregar_campo</span><span class="p">(</span><span class="n">col1</span><span class="p">,</span> <span class="s2">"Caja int. Y (bb, 3D):"</span><span class="p">,</span> <span class="s2">"bb"</span><span class="p">,</span> <span class="s2">"10.0"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ent_cc</span> <span class="o">=</span> <span class="n">agregar_campo</span><span class="p">(</span><span class="n">col1</span><span class="p">,</span> <span class="s2">"Caja int. Z (cc, 3D):"</span><span class="p">,</span> <span class="s2">"cc"</span><span class="p">,</span> <span class="s2">"5.0"</span><span class="p">)</span>
+
+        <span class="c1"># Columna 2: Física</span>
+        <span class="n">agregar_campo</span><span class="p">(</span><span class="n">col2</span><span class="p">,</span> <span class="s2">"Kappa (κ):"</span><span class="p">,</span> <span class="s2">"kappa"</span><span class="p">,</span> <span class="s2">"1.0"</span><span class="p">)</span>
+        <span class="n">agregar_campo</span><span class="p">(</span><span class="n">col2</span><span class="p">,</span> <span class="s2">"Relajación (bt):"</span><span class="p">,</span> <span class="s2">"bt"</span><span class="p">,</span> <span class="s2">"1.0"</span><span class="p">)</span>
+        <span class="n">agregar_campo</span><span class="p">(</span><span class="n">col2</span><span class="p">,</span> <span class="s2">"Temperatura (T):"</span><span class="p">,</span> <span class="s2">"T"</span><span class="p">,</span> <span class="s2">"0.0"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ent_gap</span> <span class="o">=</span> <span class="n">agregar_campo</span><span class="p">(</span><span class="n">col2</span><span class="p">,</span> <span class="s2">"Acoplamiento (Gap, 2D):"</span><span class="p">,</span> <span class="s2">"Gap"</span><span class="p">,</span> <span class="s2">"-0.001"</span><span class="p">)</span>
+
+        <span class="n">row_tau</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">col2</span><span class="p">)</span>
+        <span class="n">row_tau</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">row_tau</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"Geometría tau (3D):"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">22</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var_tau</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s2">"bloque"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb_tau</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Combobox</span><span class="p">(</span>
+            <span class="n">row_tau</span><span class="p">,</span> <span class="n">textvariable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">var_tau</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="s2">"bloque"</span><span class="p">,</span> <span class="s2">"estricto"</span><span class="p">],</span> <span class="n">state</span><span class="o">=</span><span class="s2">"readonly"</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb_tau</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">row_suav</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">col2</span><span class="p">)</span>
+        <span class="n">row_suav</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">row_suav</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"Suavizado bordes (3D):"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">22</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var_suav</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s2">"8_vertices"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb_suav</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Combobox</span><span class="p">(</span>
+            <span class="n">row_suav</span><span class="p">,</span>
+            <span class="n">textvariable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">var_suav</span><span class="p">,</span>
+            <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="s2">"8_vertices"</span><span class="p">,</span> <span class="s2">"12_aristas"</span><span class="p">,</span> <span class="s2">"ambos"</span><span class="p">],</span>
+            <span class="n">state</span><span class="o">=</span><span class="s2">"readonly"</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb_suav</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Columna 3: Barrido de campo H</span>
+        <span class="n">agregar_campo</span><span class="p">(</span><span class="n">col3</span><span class="p">,</span> <span class="s2">"Campo inicial (Hi):"</span><span class="p">,</span> <span class="s2">"Hi"</span><span class="p">,</span> <span class="s2">"0.0"</span><span class="p">)</span>
+        <span class="n">agregar_campo</span><span class="p">(</span><span class="n">col3</span><span class="p">,</span> <span class="s2">"Campo final (Hf):"</span><span class="p">,</span> <span class="s2">"Hf"</span><span class="p">,</span> <span class="s2">"0.2"</span><span class="p">)</span>
+        <span class="n">agregar_campo</span><span class="p">(</span><span class="n">col3</span><span class="p">,</span> <span class="s2">"Paso de campo (dH):"</span><span class="p">,</span> <span class="s2">"dH"</span><span class="p">,</span> <span class="s2">"0.1"</span><span class="p">)</span>
+        <span class="n">agregar_campo</span><span class="p">(</span><span class="n">col3</span><span class="p">,</span> <span class="s2">"Tolerancia (eps):"</span><span class="p">,</span> <span class="s2">"eps"</span><span class="p">,</span> <span class="s2">"1e-5"</span><span class="p">)</span>
+        <span class="n">agregar_campo</span><span class="p">(</span><span class="n">col3</span><span class="p">,</span> <span class="s2">"Iteraciones máx (nMax):"</span><span class="p">,</span> <span class="s2">"nMax"</span><span class="p">,</span> <span class="s2">"10000000"</span><span class="p">)</span>
+        <span class="n">agregar_campo</span><span class="p">(</span><span class="n">col3</span><span class="p">,</span> <span class="s2">"Sub-iteraciones (lMax):"</span><span class="p">,</span> <span class="s2">"lMax"</span><span class="p">,</span> <span class="s2">"100"</span><span class="p">)</span>
+
+        <span class="c1"># Botón de ejecución y consola de progreso</span>
+        <span class="n">frame_run</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tab_sim</span><span class="p">)</span>
+        <span class="n">frame_run</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">btn_ejecutar</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span>
+            <span class="n">frame_run</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">"🚀 Ejecutar Simulación (o Cargar si ya existe en Caché)"</span><span class="p">,</span>
+            <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">iniciar_simulacion_hilo</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btn_ejecutar</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lbl_estado_sim</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span>
+            <span class="n">frame_run</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"Listo para simular."</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="p">(</span><span class="s2">"Sans"</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">"bold"</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lbl_estado_sim</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">)</span>
+
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tab_sim</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"Consola de progreso en tiempo real (GNU Octave):"</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span>
+            <span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txt_log</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tab_sim</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s2">"#1e1e1e"</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">"#d4d4d4"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txt_log</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">BOTH</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">actualizar_campos_formulario</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="TDGLApp.actualizar_campos_formulario">
+<a class="viewcode-back" href="../../tdgl_solver.html#tdgl_solver.gui_tk.TDGLApp.actualizar_campos_formulario">[documentos]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">actualizar_campos_formulario</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Habilita o deshabilita campos exclusivos de 2D o 3D para guiar al usuario."""</span>
+        <span class="n">es_3d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_sim_modelo</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"3D_1Banda"</span>
+        <span class="n">estado_3d</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">NORMAL</span> <span class="k">if</span> <span class="n">es_3d</span> <span class="k">else</span> <span class="n">tk</span><span class="o">.</span><span class="n">DISABLED</span>
+        <span class="n">estado_2d</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">DISABLED</span> <span class="k">if</span> <span class="n">es_3d</span> <span class="k">else</span> <span class="n">tk</span><span class="o">.</span><span class="n">NORMAL</span>
+
+        <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ent_dz</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ent_c</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ent_aa</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ent_bb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ent_cc</span><span class="p">):</span>
+            <span class="n">w</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">estado_3d</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb_tau</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">"readonly"</span> <span class="k">if</span> <span class="n">es_3d</span> <span class="k">else</span> <span class="n">tk</span><span class="o">.</span><span class="n">DISABLED</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb_suav</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">"readonly"</span> <span class="k">if</span> <span class="n">es_3d</span> <span class="k">else</span> <span class="n">tk</span><span class="o">.</span><span class="n">DISABLED</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ent_gap</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">estado_2d</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">es_3d</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">entries</span><span class="p">[</span><span class="s2">"a"</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">"20.0"</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">entries</span><span class="p">[</span><span class="s2">"b"</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">"20.0"</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">entries</span><span class="p">[</span><span class="s2">"eps"</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">"1e-7"</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">entries</span><span class="p">[</span><span class="s2">"a"</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">"10.0"</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">entries</span><span class="p">[</span><span class="s2">"b"</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">"10.0"</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">entries</span><span class="p">[</span><span class="s2">"eps"</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">"1e-5"</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TDGLApp.recolectar_parametros">
+<a class="viewcode-back" href="../../tdgl_solver.html#tdgl_solver.gui_tk.TDGLApp.recolectar_parametros">[documentos]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">recolectar_parametros</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="n">params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"modelo"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_sim_modelo</span><span class="o">.</span><span class="n">get</span><span class="p">()}</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">params</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">get</span><span class="p">())</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"nMax"</span><span class="p">,</span> <span class="s2">"lMax"</span><span class="p">)</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">get</span><span class="p">()))</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">"geometria_tau"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_tau</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">"suavizado_bordes"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_suav</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">params</span></div>
+
+
+<div class="viewcode-block" id="TDGLApp.iniciar_simulacion_hilo">
+<a class="viewcode-back" href="../../tdgl_solver.html#tdgl_solver.gui_tk.TDGLApp.iniciar_simulacion_hilo">[documentos]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">iniciar_simulacion_hilo</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulando</span><span class="p">:</span>
+            <span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span><span class="s2">"Ocupado"</span><span class="p">,</span> <span class="s2">"Ya hay una simulación en curso."</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recolectar_parametros</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span><span class="s2">"Error en parámetros"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"Verifica que todos los números sean válidos:</span><span class="se">\n</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">en_cache</span><span class="p">,</span> <span class="n">run_dir</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">verificar_cache</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">en_cache</span><span class="p">:</span>
+            <span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span>
+                <span class="s2">"Parámetros ya ejecutados"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"Estos parámetros ya fueron ejecutados anteriormente.</span><span class="se">\n\n</span><span class="s2">"</span>
+                <span class="sa">f</span><span class="s2">"Se cargarán directamente los resultados desde:</span><span class="se">\n</span><span class="si">{</span><span class="n">run_dir</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seleccionar_y_mostrar_corrida</span><span class="p">(</span><span class="n">run_dir</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Iniciar ejecución en segundo plano</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simulando</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btn_ejecutar</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">DISABLED</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lbl_estado_sim</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="sa">f</span><span class="s2">"Calculando en </span><span class="si">{</span><span class="n">run_dir</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">..."</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txt_log</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">"1.0"</span><span class="p">,</span> <span class="n">tk</span><span class="o">.</span><span class="n">END</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txt_log</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">END</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"Iniciando Octave en carpeta: </span><span class="si">{</span><span class="n">run_dir</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">tarea_background</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">out_dir</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">ejecutar_con_progreso</span><span class="p">(</span>
+                    <span class="n">params</span><span class="p">,</span>
+                    <span class="n">callback_linea</span><span class="o">=</span><span class="k">lambda</span> <span class="n">lin</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_queue</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="s2">"LOG"</span><span class="p">,</span> <span class="n">lin</span><span class="p">)),</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log_queue</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="s2">"DONE"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">out_dir</span><span class="p">)))</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log_queue</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="s2">"ERR"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">)))</span>
+
+        <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">tarea_background</span><span class="p">,</span> <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">procesar_cola_logs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TDGLApp.procesar_cola_logs">
+<a class="viewcode-back" href="../../tdgl_solver.html#tdgl_solver.gui_tk.TDGLApp.procesar_cola_logs">[documentos]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">procesar_cola_logs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+            <span class="n">tipo</span><span class="p">,</span> <span class="n">msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_queue</span><span class="o">.</span><span class="n">get_nowait</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">tipo</span> <span class="o">==</span> <span class="s2">"LOG"</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">txt_log</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">END</span><span class="p">,</span> <span class="n">msg</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">txt_log</span><span class="o">.</span><span class="n">see</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">END</span><span class="p">)</span>
+                <span class="c1"># Si se completó un campo H, refrescar lista por si el usuario quiere ir viendo</span>
+                <span class="k">if</span> <span class="s2">"completado en"</span> <span class="ow">in</span> <span class="n">msg</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">actualizar_lista_modelos</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">tipo</span> <span class="o">==</span> <span class="s2">"DONE"</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">simulando</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">btn_ejecutar</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">NORMAL</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">lbl_estado_sim</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">"¡Simulación completada!"</span><span class="p">)</span>
+                <span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span>
+                    <span class="s2">"Simulación Finalizada"</span><span class="p">,</span>
+                    <span class="s2">"El cálculo ha concluido exitosamente. Pasando al visualizador."</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seleccionar_y_mostrar_corrida</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span>
+                <span class="k">return</span>
+            <span class="k">elif</span> <span class="n">tipo</span> <span class="o">==</span> <span class="s2">"ERR"</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">simulando</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">btn_ejecutar</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">NORMAL</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">lbl_estado_sim</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">"Error en la simulación."</span><span class="p">)</span>
+                <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span><span class="s2">"Error en Octave"</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+                <span class="k">return</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulando</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">procesar_cola_logs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TDGLApp.seleccionar_y_mostrar_corrida">
+<a class="viewcode-back" href="../../tdgl_solver.html#tdgl_solver.gui_tk.TDGLApp.seleccionar_y_mostrar_corrida">[documentos]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">seleccionar_y_mostrar_corrida</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actualizar_lista_modelos</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">etiqueta</span><span class="p">,</span> <span class="n">ruta_str</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rutas_disponibles</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">ruta_str</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span> <span class="o">==</span> <span class="n">run_dir</span><span class="o">.</span><span class="n">resolve</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cb_modelo</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">etiqueta</span><span class="p">)</span>
+                <span class="k">break</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cargar_modelo_seleccionado</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">notebook</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tab_vis</span><span class="p">)</span></div>
+
+
+    <span class="c1"># -------------------------------------------------------------------------</span>
+    <span class="c1"># LÓGICA DE CARGA Y GRAFICACIÓN</span>
+    <span class="c1"># -------------------------------------------------------------------------</span>
+<div class="viewcode-block" id="TDGLApp.actualizar_lista_modelos">
+<a class="viewcode-back" href="../../tdgl_solver.html#tdgl_solver.gui_tk.TDGLApp.actualizar_lista_modelos">[documentos]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">actualizar_lista_modelos</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">seleccion_previa</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cb_modelo</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rutas_disponibles</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">RUTAS_BASE</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rutas_disponibles</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">listar_simulaciones_cacheadas</span><span class="p">())</span>
+        <span class="n">claves</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rutas_disponibles</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb_modelo</span><span class="p">[</span><span class="s2">"values"</span><span class="p">]</span> <span class="o">=</span> <span class="n">claves</span>
+        <span class="k">if</span> <span class="n">seleccion_previa</span> <span class="ow">in</span> <span class="n">claves</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cb_modelo</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">seleccion_previa</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">claves</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cb_modelo</span><span class="o">.</span><span class="n">current</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_resolver_ruta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ruta_rel</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">ruta_rel</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">p</span>
+        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">ruta_rel</span>
+
+<div class="viewcode-block" id="TDGLApp.cargar_modelo_seleccionado">
+<a class="viewcode-back" href="../../tdgl_solver.html#tdgl_solver.gui_tk.TDGLApp.cargar_modelo_seleccionado">[documentos]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cargar_modelo_seleccionado</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">detener_animacion</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actualizar_lista_modelos</span><span class="p">()</span>
+        <span class="n">opcion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cb_modelo</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">opcion</span> <span class="ow">or</span> <span class="n">opcion</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rutas_disponibles</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">ruta_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolver_ruta</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rutas_disponibles</span><span class="p">[</span><span class="n">opcion</span><span class="p">])</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loader</span> <span class="o">=</span> <span class="n">TDGLDataLoader</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ruta_path</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">campos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loader</span><span class="o">.</span><span class="n">listar_campos_disponibles</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">campos</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb_campo</span><span class="p">[</span><span class="s2">"values"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">campos</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb_campo</span><span class="o">.</span><span class="n">current</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">datos_actuales</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loader</span><span class="o">.</span><span class="n">cargar_paso_campo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">campos</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vars_disponibles</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datos_actuales</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">listbox_vars</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">tk</span><span class="o">.</span><span class="n">END</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">vars_disponibles</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">listbox_vars</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">END</span><span class="p">,</span> <span class="n">NOMBRES_VARIABLES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vars_disponibles</span><span class="p">))):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">listbox_vars</span><span class="o">.</span><span class="n">selection_set</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">configurar_slider_z</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dibujar_cuadricula</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="TDGLApp.configurar_slider_z">
+<a class="viewcode-back" href="../../tdgl_solver.html#tdgl_solver.gui_tk.TDGLApp.configurar_slider_z">[documentos]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">configurar_slider_z</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">es_3d</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">mat</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span> <span class="k">for</span> <span class="n">mat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datos_actuales</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">es_3d</span><span class="p">:</span>
+            <span class="n">max_z</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">mat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">mat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datos_actuales</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">mat</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">slider_z</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">NORMAL</span><span class="p">,</span> <span class="n">from_</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="n">max_z</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">slider_z</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">max_z</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lbl_z</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="sa">f</span><span class="s2">"3. Corte Transversal Z: </span><span class="si">{</span><span class="n">max_z</span><span class="w"> </span><span class="o">//</span><span class="w"> </span><span class="mi">2</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">slider_z</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">slider_z</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">DISABLED</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lbl_z</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">"3. Corte Transversal Z: N/A (2D)"</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TDGLApp.al_cambiar_campo">
+<a class="viewcode-back" href="../../tdgl_solver.html#tdgl_solver.gui_tk.TDGLApp.al_cambiar_campo">[documentos]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">al_cambiar_campo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">loader</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cb_campo</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datos_actuales</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loader</span><span class="o">.</span><span class="n">cargar_paso_campo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cb_campo</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dibujar_cuadricula</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="TDGLApp.al_mover_slider_z">
+<a class="viewcode-back" href="../../tdgl_solver.html#tdgl_solver.gui_tk.TDGLApp.al_mover_slider_z">[documentos]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">al_mover_slider_z</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lbl_z</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="sa">f</span><span class="s2">"3. Corte Transversal Z: </span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dibujar_cuadricula</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="TDGLApp.dibujar_cuadricula">
+<a class="viewcode-back" href="../../tdgl_solver.html#tdgl_solver.gui_tk.TDGLApp.dibujar_cuadricula">[documentos]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dibujar_cuadricula</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">indices_sel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">listbox_vars</span><span class="o">.</span><span class="n">curselection</span><span class="p">()</span>
+        <span class="n">vars_sel</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">vars_disponibles</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indices_sel</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">vars_sel</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">datos_actuales</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+            <span class="k">return</span>
+
+        <span class="n">n_plots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vars_sel</span><span class="p">)</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">n_plots</span><span class="p">)</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">n_plots</span> <span class="o">/</span> <span class="n">cols</span><span class="p">)</span>
+
+        <span class="n">cmap_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cb_cmap</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">fijar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_fijar_escala</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">h_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cb_campo</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">z_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slider_z</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">var_key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vars_sel</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">var_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datos_actuales</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">matriz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">datos_actuales</span><span class="p">[</span><span class="n">var_key</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">matriz</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">vista</span> <span class="o">=</span> <span class="n">matriz</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">z_idx</span><span class="p">]</span>
+                <span class="n">subtitulo</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"H=</span><span class="si">{</span><span class="n">h_str</span><span class="si">}</span><span class="s2"> | Z=</span><span class="si">{</span><span class="n">z_idx</span><span class="si">}</span><span class="s2">"</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">vista</span> <span class="o">=</span> <span class="n">matriz</span>
+                <span class="n">subtitulo</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"H=</span><span class="si">{</span><span class="n">h_str</span><span class="si">}</span><span class="s2">"</span>
+
+            <span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">fijar</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">var_key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"d4"</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">):</span>
+                    <span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span>
+                <span class="k">elif</span> <span class="n">var_key</span> <span class="o">==</span> <span class="s2">"phase"</span><span class="p">:</span>
+                    <span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+
+            <span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
+                <span class="n">vista</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap_name</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s2">"lower"</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s2">"equal"</span>
+            <span class="p">)</span>
+            <span class="n">cbar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="mf">0.046</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mf">0.04</span><span class="p">)</span>
+            <span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelsize</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+
+            <span class="n">titulo</span> <span class="o">=</span> <span class="n">NOMBRES_VARIABLES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">var_key</span><span class="p">,</span> <span class="n">var_key</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">titulo</span><span class="si">}</span><span class="se">\n</span><span class="s2">(</span><span class="si">{</span><span class="n">subtitulo</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s2">"bold"</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelsize</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="TDGLApp.alternar_animacion">
+<a class="viewcode-back" href="../../tdgl_solver.html#tdgl_solver.gui_tk.TDGLApp.alternar_animacion">[documentos]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">alternar_animacion</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">animando</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">detener_animacion</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">campos</span><span class="p">:</span>
+                <span class="k">return</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">animando</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">btn_animar</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">"⏹ Detener Animación"</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_paso_animacion</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="TDGLApp.detener_animacion">
+<a class="viewcode-back" href="../../tdgl_solver.html#tdgl_solver.gui_tk.TDGLApp.detener_animacion">[documentos]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">detener_animacion</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">animando</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btn_animar</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">"▶ Iniciar Animación en H"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">after_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">after_cancel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">after_id</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">after_id</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_paso_animacion</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">animando</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">idx_actual</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cb_campo</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
+        <span class="n">siguiente_idx</span> <span class="o">=</span> <span class="p">(</span><span class="n">idx_actual</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">campos</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb_campo</span><span class="o">.</span><span class="n">current</span><span class="p">(</span><span class="n">siguiente_idx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">al_cambiar_campo</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">after_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slider_vel</span><span class="o">.</span><span class="n">get</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_paso_animacion</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../tdgl_solver.html#tdgl_solver.gui_tk.main">[documentos]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Tk</span><span class="p">()</span>
+    <span class="n">TDGLApp</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+    <span class="n">root</span><span class="o">.</span><span class="n">mainloop</span><span class="p">()</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Derechos de autor 2026, Luder Espitia Guzmán.</p>
+  </div>
+
+  Compilado con <a href="https://www.sphinx-doc.org/">Sphinx</a> usando un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    proporcionado por <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
