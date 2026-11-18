@@ -16,12 +16,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from tdgl_solver.io_handler import TDGLDataLoader
 from tdgl_solver.runner import TDGLRunner
 
-RUTAS_BASE: Dict[str, str] = {
-    "Modularizado": "output_modular",
-    "2D_2bandas sin modularizar": "Codigo2/output",
-    "3D_1banda sin modularizar": "Codigo3/output",
-}
-
 NOMBRES_VARIABLES: Dict[str, str] = {
     "d": "Densidad Banda 1 (d)",
     "B": "Densidad Banda 2 (B)",
@@ -395,8 +389,22 @@ class TDGLApp:
     # -------------------------------------------------------------------------
     def actualizar_lista_modelos(self) -> None:
         seleccion_previa = self.cb_modelo.get()
-        self.rutas_disponibles = dict(RUTAS_BASE)
+        self.rutas_disponibles = {}
+        
+        # Buscar carpetas base legacy relativas al directorio de trabajo actual
+        rutas_base_posibles = {
+            "Modularizado": "output_modular",
+            "2D_2bandas sin modularizar": "Codigo2/output",
+            "3D_1banda sin modularizar": "Codigo3/output",
+        }
+        
+        for nombre, rel_path in rutas_base_posibles.items():
+            candidato = Path.cwd() / rel_path
+            if candidato.exists():
+                self.rutas_disponibles[nombre] = str(candidato)
+
         self.rutas_disponibles.update(self.runner.listar_simulaciones_cacheadas())
+        
         claves = list(self.rutas_disponibles.keys())
         self.cb_modelo["values"] = claves
         if seleccion_previa in claves:
@@ -404,11 +412,9 @@ class TDGLApp:
         elif claves:
             self.cb_modelo.current(0)
 
-    def _resolver_ruta(self, ruta_rel: str) -> Path:
-        p = Path(ruta_rel)
-        if p.exists():
-            return p
-        return Path(__file__).resolve().parents[2] / ruta_rel
+    def _resolver_ruta(self, ruta_str: str) -> Path:
+        """Resuelve la ruta absoluta del directorio a analizar asegurando la compatibilidad con el paquete instalado."""
+        return Path(ruta_str).resolve()
 
     def cargar_modelo_seleccionado(self, event=None) -> None:
         self.detener_animacion()
