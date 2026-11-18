@@ -1,29 +1,29 @@
 function cfg = config_simulacion()
 % CONFIG_SIMULACION Generado automáticamente desde Python (tdgl_solver).
-    cfg.modelo = '3D_1Banda';
+    cfg.modelo = '2D_2Bandas';
     cfg.dx = 0.25;
     cfg.dy = 0.25;
-    cfg.a = 20.0;
-    cfg.b = 20.0;
+    cfg.a = 10.0;
+    cfg.b = 10.0;
     cfg.kappa = 1.0;
     cfg.bt = 1.0;
     cfg.T = 0.0;
     cfg.Hi = 0.0;
-    cfg.Hf = 2.0;
+    cfg.Hf = 0.0;
     cfg.dH = 0.1;
-    cfg.eps = 1e-07;
+    cfg.eps = 1e-05;
     cfg.nMax = 10000000;
     cfg.lMax = 100;
+    cfg.Gap = -0.001;
     cfg.dz = 0.25;
     cfg.c = 10.0;
     cfg.aa = 10.0;
     cfg.bb = 10.0;
     cfg.cc = 5.0;
     cfg.geometria_tau = 'bloque';
-    cfg.suavizado_bordes = '12_aristas';
-    cfg.Gap = -0.001;
+    cfg.suavizado_bordes = '8_vertices';
     cfg.is_restart = false;
-    cfg.output_dir = '/home/luder/project/SD/Final_GL/Ginzburg-Landau_solver/runs/3D_1Banda_5f2573f9ea';
+    cfg.output_dir = '/tmp/pytest-of-luder/pytest-2/test_7_ejecucion_octave_mockea0/2D_2Bandas_007daeeb5b';
     cfg.graficar_en_vivo = false;
     cfg.guardar_campos_extra = false;
 end
